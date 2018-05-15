@@ -11,6 +11,8 @@ using namespace std;
 #include "TRandom3.h"
 #include "TMath.h"
 #include "Utils.C"
+#include <sstream>
+#include <queue>
 
 class Photon
 {
@@ -112,6 +114,24 @@ private:
 	
 };
 
+class XjPhi
+{
+public:
+	XjPhi(float pt1, float phi1, float pt2, float phi2){
+		//calculate scalar Xjs from parameters 
+		xj=Scalar(pt1/pt2);
+		phi=Scalar(phi2-phi1);
+	}
+	~XjPhi(){}
+	friend ostream& operator<<(ostream& os, XjPhi const & tc) {
+        return os << tc.xj.value <<','<<tc.phi.value<<'\n';
+    }
+	
+private:
+	Scalar xj;
+	Scalar phi;
+};
+
 void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* t=new TTree("tree100","events");
@@ -130,6 +150,8 @@ void makeData(std::string filename, int nEvents){
   	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1);
   	Jet *temp =NULL;
   	int finalGammaCount=0;
+  	stringstream ss;
+  	queue<XjPhi> map;
   	/* generation loop*/
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
@@ -138,7 +160,7 @@ void makeData(std::string filename, int nEvents){
       		iEvent--;
       		continue;
     	}
-    	if(iEvent%30==0) {
+    	if(iEvent%300==0) {
   			cout<<"Event N: "<<iEvent<<'\n';
     	}
     	/* zero out */
@@ -150,8 +172,10 @@ void makeData(std::string filename, int nEvents){
     			//cout<<pythiaengine.process[i].pT()<<'\n';
     			Photon myPhoton = Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi(),pythiaengine.event[i].eta());
     			antikT->analyze(pythiaengine.event);
-    			cout<<"Photon phi:"<<pythiaengine.event[i].phi()<<" Jet1 phi:"<<antikT->phi(0)<<" Jet2 phi:"<<antikT->phi(1)<<"\n";
-    			cout<<"Photon pT:"<<pythiaengine.event[i].pT()<<" Jet1 pT:"<<antikT->pT(0)<<" Jet2 pT:"<<antikT->pT(1)<<"\n";
+    			ss<<"Photon phi:"<<pythiaengine.event[i].phi()<<" Jet1 phi:"<<antikT->phi(0)<<" Jet2 phi:"<<antikT->phi(1)<<"\n";
+    			ss<<"Photon pT:"<<pythiaengine.event[i].pT()<<" Jet1 pT:"<<antikT->pT(0)<<" Jet2 pT:"<<antikT->pT(1)<<"\n";
+    			map.push(XjPhi(pythiaengine.event[i].pT(),pythiaengine.event[i].phi(),antikT->pT(1),antikT->phi(1)));
+    			//create a map of XjPhi and output that data to TFile or txt or something 
      			finalGammaCount++;
     		}
     	}
@@ -165,14 +189,19 @@ void makeData(std::string filename, int nEvents){
 
     	}*/
   	}
-  	cout<<finalGammaCount<<endl;
+  	cout<<ss.str();
+  	cout<<"Map:"<<finalGammaCount<<endl;
+  	while(!map.empty()){
+  		cout<<map.front()<<'\n';
+  		map.pop();
+  	}
 }
 
 
 int main()
 {
 	string fileOut = "";
-	int nEvents = 1000;
+	int nEvents = 10000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
