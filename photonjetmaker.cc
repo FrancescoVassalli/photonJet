@@ -119,8 +119,8 @@ class XjPhi
 public:
 	XjPhi(float pt1, float phi1, float pt2, float phi2){
 		//calculate scalar Xjs from parameters 
-		xj=Scalar(pt1/pt2);
-		phi=Scalar(phi2-phi1);
+		xj=Scalar(smaller(pt1,pt2)/bigger(pt1,pt2));
+		phi=Scalar(TMath::Abs(phi2-phi1));
 	}
 	~XjPhi(){}
 	friend ostream& operator<<(ostream& os, XjPhi const & tc) {
@@ -148,7 +148,7 @@ void makeData(std::string filename, int nEvents){
 
   	/* Tbranching  */
   	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1);
-  	Jet *temp =NULL;
+  	//Jet *temp =NULL;
   	int finalGammaCount=0;
   	stringstream ss;
   	queue<XjPhi> map;
@@ -160,7 +160,7 @@ void makeData(std::string filename, int nEvents){
       		iEvent--;
       		continue;
     	}
-    	if(iEvent%300==0) {
+    	/*if(iEvent%300==0) {
   			cout<<"Event N: "<<iEvent<<'\n';
     	}
     	/* zero out */
@@ -192,7 +192,7 @@ void makeData(std::string filename, int nEvents){
   	cout<<ss.str();
   	cout<<"Map:"<<finalGammaCount<<endl;
   	while(!map.empty()){
-  		cout<<map.front()<<'\n';
+  		cout<<map.front();
   		map.pop();
   	}
 }
@@ -201,7 +201,7 @@ void makeData(std::string filename, int nEvents){
 int main()
 {
 	string fileOut = "";
-	int nEvents = 10000;
+	int nEvents = 5000;
 	makeData(fileOut,nEvents);
 	return 0;
 }

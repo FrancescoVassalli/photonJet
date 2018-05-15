@@ -157,3 +157,22 @@ struct Point
 	Scalar x;
 	Scalar y;
 };
+
+float bigger(float x, float y){
+	if (x>y)
+	{
+		return x;
+	}
+	else{
+		return y;
+	}
+}
+float smaller(float x, float y){
+	if (x<y)
+	{
+		return x;
+	}
+	else{
+		return y;
+	}
+}
