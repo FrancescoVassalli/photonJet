@@ -24,6 +24,10 @@ public:
 		this->value=value;
 		this->uncertainty=uncertainty;
 	}
+	Scalar(const Scalar &s){
+		this->value=s.value;
+		uncertainty=s.uncertainty;
+	}
 	~Scalar(){}; 
 	//operators might need to return class types but I'm not sure
 	Scalar operator+(const Scalar &s){
@@ -158,7 +162,8 @@ struct Point
 	Scalar y;
 };
 
-float bigger(float x, float y){
+template<class T>
+T bigger(T x, T y){
 	if (x>y)
 	{
 		return x;
@@ -167,7 +172,8 @@ float bigger(float x, float y){
 		return y;
 	}
 }
-float smaller(float x, float y){
+template<class T>
+T smaller(T x, T y){
 	if (x<y)
 	{
 		return x;
