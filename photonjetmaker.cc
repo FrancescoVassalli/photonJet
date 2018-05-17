@@ -14,172 +14,6 @@ using namespace std;
 #include <sstream>
 #include <queue>
 
-class Photon
-{
-public:
-	Photon(){}
-	Photon(float _pT){
-		this->pT = Scalar(_pT);
-	}
-	Photon(float _pT,float _phi){
-		this->pT = Scalar(_pT);
-		this->phi= Scalar(_phi);
-	}
-	Photon(double _pT,double _phi){
-		this->pT = Scalar((float)_pT);
-		this->phi= Scalar((float)_phi);
-	}
-	Photon(float _pT,float _phi, float _eta){
-		this->pT = Scalar(_pT);
-		this->phi= Scalar(_phi);
-		this->eta= Scalar(_eta);
-	}
-	Photon(double _pT,double _phi, double _eta){
-		this->pT = Scalar((float)_pT);
-		this->phi= Scalar((float)_phi);
-		this->eta= Scalar((float)_eta);
-	}
-	~Photon(){}
-	Scalar getpT(){
-		return pT;
-	}
-	void setpT(float _pT){
-		this->pT = Scalar(_pT);
-	}
-	Scalar getphi(){
-		return phi;
-	}
-	void setphi(float _phi){
-		this->phi = Scalar(_phi);
-	}
-	Scalar geteta(){
-		return eta;
-	}
-	void seteta(float _eta){
-		this->eta = Scalar(_eta);
-	}
-	Point getAngle(){
-		Point r;
-		r.x=phi;
-		r.y=eta;
-		return r;
-	}
-
-private:
-	Scalar pT;
-	Scalar phi;
-	Scalar eta;
-
-};
-
-class Jet
-{
-public:
-	Jet(){}
-	Jet(float _pT, float _phi, float _y, float _r){
-		this->pT =Scalar(_pT);
-		this->phi = Scalar(_phi);
-		this->y = Scalar(_y);
-		this->r = Scalar(_r);
-	}
-	Jet(double _pT, double _phi){
-		pT=Scalar(_pT);
-		phi=Scalar(_phi);
-		y=Scalar(0);
-		r=0;
-	}
-	~Jet(){
-		if (next!=NULL)
-		{
-			delete next;
-			next =NULL;
-		}
-		if (pair!=NULL)
-		{
-			delete pair;
-			pair=NULL;
-		}
-	}
-	void setMult(int m){
-		mult=m;
-	}
-	int getmult(){
-		return mult;
-	}
-	Scalar getpT(){
-		return pT;
-	}
-	Scalar getphi(){
-		return phi;
-	}
-	Scalar gety(){
-		return y;
-	}
-	Scalar getr(){
-		return r;
-	}
-	Scalar operator/(float s){ 
-		return pT/s;
-	}
-	Scalar operator/(Jet s){ 
-		return pT/s.getpT();
-	}
-	bool operator==(Jet s){
-		return pT==s.pT&&phi==s.getphi();
-	}
-	bool operator>(Jet s){
-		return pT>s.getpT();
-	}
-	bool operator<(Jet s){
-		return pT<s.getpT();
-	}
-	bool operator>=(Jet s){
-		return pT>=s.getpT();
-	}
-	bool operator<=(Jet s){
-		return pT<=s.getpT();
-	}
-	bool operator!=(Jet s){
-		return pT!=s.getpT();
-	}
-private:
-	Scalar pT=-1;
-	Scalar phi =7;
-	Scalar y=0;
-	Scalar r=-1;
-	int mult=0;
-	Jet* next=NULL;
-	Jet* pair=NULL;
-	
-};
-
-class XjPhi
-{
-public:
-	XjPhi(float pt1, float phi1, float pt2, float phi2){
-		//calculate scalar Xjs from parameters 
-		xj=Scalar(smaller(pt1,pt2)/bigger(pt1,pt2));
-		phi=Scalar(TMath::Abs(Scalar(phi2-phi1).value));
-	}
-	XjPhi(Jet leading, Jet subleading){
-		xj=Scalar(subleading/leading);
-		phi = Scalar(TMath::Abs(Scalar(subleading.getphi()-leading.getphi()).value));
-	}
-	XjPhi(Photon p, Jet j){
-		xj=(smaller(p.getpT(),j.getpT())/bigger(p.getpT(),j.getpT()));
-		phi = TMath::Abs(Scalar(p.getphi()-j.getphi()).value);
-	}
-	XjPhi(){};
-	~XjPhi(){}
-	friend ostream& operator<<(ostream& os, XjPhi const & tc) {
-        return os << tc.xj.value <<','<<tc.phi.value<<'\n';
-    }
-	
-private:
-	Scalar xj;
-	Scalar phi;
-};
-
 class DiJet
 {
 public:
@@ -252,6 +86,12 @@ public:
 		makeXjPhi();
 	}
 	~PhotonJet(){}
+	Scalar getXj(){
+		return xjphi.getXj();
+	}
+	Scalar getphi(){
+		return xjphi.getphi();
+	}
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
     }
@@ -323,20 +163,32 @@ void makeData(std::string filename, int nEvents){
 
     	}*/
   	}
+  	//data out 
+  	float xjtemp;
+  	float phitemp;
+  	t->Branch("xj",&xjtemp);
+  	t->Branch("phi",&phitemp);
   	cout<<ss.str();
   	cout<<"Map:"<<finalGammaCount<<endl;
   	int counter=0;
   	while(!map.empty()){
   		cout<<map.front();
+  		xjtemp=map.front().getXj().value;
+  		phitemp=map.front().getphi().value;
+  		t->Fill();
+  		//out the file 
   		map.pop();
   	}
+  	t->Write();
+  	f->Write();
+  	f->Close();
 }
 
 
 int main()
 {
 	string fileOut = "";
-	int nEvents = 100000;
+	int nEvents = 5000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
