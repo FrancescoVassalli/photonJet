@@ -10,9 +10,14 @@ using namespace std;
 #include "TTree.h"
 #include "TRandom3.h"
 #include "TMath.h"
-#include "Utils.C"
+#include "Utils.C" //split this into the three classes below needs like #IFNDEF
+/*#include "XjPhi.C"
+#include "CollisionClasses.C"
+#include "SimpleMath.C"*/
 #include <sstream>
 #include <queue>
+
+//float** qXjPhiTo2DArray(queue<XjPhi> in); //in utils for now
 
 class DiJet
 {
@@ -141,6 +146,7 @@ void makeData(std::string filename, int nEvents){
     	{
     		if (pythiaengine.event[i].id()==22&&pythiaengine.event[i].isFinal()&&pythiaengine.event[i].pT()>10&&TMath::Abs(pythiaengine.event[i].eta())<1)
     		{
+    			finalGammaCount++;
     			//get the generation process 
     			//cout<<pythiaengine.process[i].pT()<<'\n';
     			Photon myPhoton = Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi(),pythiaengine.event[i].eta());
@@ -150,7 +156,7 @@ void makeData(std::string filename, int nEvents){
     			ss<<"Photon pT:"<<pythiaengine.event[i].pT()<<" Jet1 pT:"<<antikT->pT(0)<<" Jet2 pT:"<<antikT->pT(1)<<"\n";
     			map.push(PhotonJet(Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi()),Jet(antikT->pT(1),antikT->phi(1)),Jet(antikT->pT(0),antikT->phi(0))));
     			//create a map of XjPhi and output that data to TFile or txt or something 
-     			finalGammaCount++;
+     			
     		}
     	}
     	/*
@@ -187,8 +193,24 @@ void makeData(std::string filename, int nEvents){
 
 int main()
 {
-	string fileOut = "";
-	int nEvents = 5000;
+	string fileOut = "XjgP.root";
+	int nEvents = 50000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
+
+/*float** qXjPhiTo2DArray(queue<XjPhi> in){
+	float** out = new float*[2];
+	float *o1 = new float[in.size()];
+	float *o2 = new float[in.size()];
+	int i=0;
+	while(!in.empty()){
+		o1[i]=in.front().getXj().value;
+		o2[i]=in.front().getphi().value;
+		i++;
+		in.pop();
+	}
+	out[0]=o1;
+	out[1]=o2;
+	return out;
+}*/

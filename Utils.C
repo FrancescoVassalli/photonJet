@@ -333,10 +333,18 @@ public:
 	XjPhi(Jet leading, Jet subleading){
 		xj=Scalar(subleading/leading);
 		phi = Scalar(TMath::Abs(Scalar(subleading.getphi()-leading.getphi()).value));
+		if (phi>TMath::Pi())
+		{
+			phi-=TMath::Pi();
+		}
 	}
 	XjPhi(Photon p, Jet j){
 		xj=(smaller(p.getpT(),j.getpT())/bigger(p.getpT(),j.getpT()));
 		phi = TMath::Abs(Scalar(p.getphi()-j.getphi()).value);
+		if (phi>TMath::Pi())
+		{
+			phi-=TMath::Pi();
+		}
 	}
 	XjPhi(Scalar xj, Scalar phi){
 		this->xj=xj;

@@ -1,10 +1,14 @@
 using namespace std;
 
-#include "Utils.C"
+//#include "Utils.C"
+#include "CollisionClasses.C"
+#include "XjPhi.C"
 #include <sstream>
 
-void XjGammaPhiPlotter(){
-	ifstream inFile ("PbGl_dataC.txt"); //txt file containing the names of files to process
+const double PI = TMath::Pi();
+
+void plotText(string filename){
+	ifstream inFile (filename.c_str()); //txt file containing the names of files to process
 	queue<string> files;
 	string intemp;
 	while(getline(inFile,intemp)){
@@ -27,6 +31,26 @@ void XjGammaPhiPlotter(){
 	//use the XjPhi queue to make a plot 
 	float** doubleArray;
 	doubleArray=qXjPhiTo2DArray(xjp);
-	
+	TCanvas *tc = new TCanvas();
 
+
+	TH2F *plot = new TH2F("plot","",20,-3.14,TMath::Pi(),20,0,1);
+
+}
+
+void plotFile(string filename){
+	TCanvas *tc = new TCanvas();
+	TChain *gamma_tree = new TChain("tree100");
+	gamma_tree->Add(filename.c_str());
+	TH2F *plot = new TH2F("plot1","",20,0,2*TMath::Pi(),20,0,1); //can make mondular hist names 
+	gStyle->SetOptStat(1);
+	/*make the plot nice*/
+	gamma_tree->Draw("xj:phi>>plot1");
+	plot->Draw("colz");
+}
+
+
+void XjGammaPhiPlotter(){
+	string filename = "XjgP1.root";
+	plotFile(filename);
 }
