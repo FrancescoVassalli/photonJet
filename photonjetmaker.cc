@@ -110,6 +110,18 @@ private:
 	
 };
 
+//inclusive
+queue<Jet> getSignificantJet(SlowJet* antikT, float minGeV, float rad){
+	queue<Jet> r;
+	int i=0;
+	while (antikT->pT(i)>=minGeV)
+	{
+		r.push(Jet(antikT->pT(i),antikT->phi(i),antikT->y(i),rad));
+		i++;
+	}
+	return r;
+}
+
 void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* t=new TTree("tree100","events");
@@ -129,7 +141,9 @@ void makeData(std::string filename, int nEvents){
   	//Jet *temp =NULL;
   	int finalGammaCount=0;
   	stringstream ss;
+  	stringstream interest;
   	queue<PhotonJet> map;
+  	PhotonJet tempXj;
   	/* generation loop*/
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
@@ -152,9 +166,21 @@ void makeData(std::string filename, int nEvents){
     			Photon myPhoton = Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi(),pythiaengine.event[i].eta());
     			antikT->analyze(pythiaengine.event);
     			ss<<finalGammaCount<<'\n';
+    			tempXj=PhotonJet(Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi()),Jet(antikT->pT(1),antikT->phi(1)),Jet(antikT->pT(0),antikT->phi(0)));
+    			if (tempXj.getphi()<.8)
+    			{
+    				interest<<"Number:"<<finalGammaCount<<'\n';
+    				// get all significant jets 
+    				queue<Jet> significant = getSignificantJet(antikT, 10, .4);
+    				int printcount=0;
+    				while(!significant.empty()){
+    					interest<<"Jet"<<printcount<<": "<<significant.front().getpT().value<<","<<significant.front().getphi().value<<'\n';
+    					printcount++;
+    				}
+    			}
     			ss<<"Photon phi:"<<pythiaengine.event[i].phi()<<" Jet1 phi:"<<antikT->phi(0)<<" Jet2 phi:"<<antikT->phi(1)<<"\n";
     			ss<<"Photon pT:"<<pythiaengine.event[i].pT()<<" Jet1 pT:"<<antikT->pT(0)<<" Jet2 pT:"<<antikT->pT(1)<<"\n";
-    			map.push(PhotonJet(Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi()),Jet(antikT->pT(1),antikT->phi(1)),Jet(antikT->pT(0),antikT->phi(0))));
+    			map.push(tempXj);
     			//create a map of XjPhi and output that data to TFile or txt or something 
      			
     		}
@@ -176,6 +202,7 @@ void makeData(std::string filename, int nEvents){
   	t->Branch("phi",&phitemp);
   	cout<<ss.str();
   	cout<<"Map:"<<finalGammaCount<<endl;
+  	cout<<interest.str();
   	int counter=0;
   	while(!map.empty()){
   		cout<<map.front();
