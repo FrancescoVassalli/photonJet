@@ -148,7 +148,7 @@ inline bool quickPhotonCheck(Particle p){
 
 /* list of "problem" events that I am still getting
 	1) MonoJet Events 
-	2) Jet pair is not in in leading or subleading
+	2) Jet pair is not in in leading or subleading / jets to one side
 */
 
 void makeData(std::string filename, int nEvents){
@@ -281,7 +281,7 @@ float deltaPhi(Photon p, Jet j){
 	Scalar r= Scalar(TMath::Abs((p.getphi()-j.getphi()).value));
 	if (r>TMath::Pi())
 	{
-		r= r*(-1)-2*TMath::Pi();
+		r= r*(-1)+2*TMath::Pi();
 	}
 	return r.value;
 }
