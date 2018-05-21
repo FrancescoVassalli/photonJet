@@ -49,8 +49,23 @@ void plotFile(string filename){
 	plot->Draw("colz");
 }
 
+void plot1D(string filename){
+	TCanvas *tc = new TCanvas();
+	TChain *gamma_tree = new TChain("tree100");
+	gamma_tree->Add(filename.c_str());
+	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1};
+	TH1F *plot = new TH1F("plota","",10,bins); //can make mondular hist names 
+	//get the normalization right
+	plot->Scale(1/plot->Integral(),"width");
+	gStyle->SetOptStat(1);
+	/*make the plot nice*/
+	gamma_tree->Draw("xj>>plota");
+	plot->Draw("p");
+}
+
 
 void XjGammaPhiPlotter(){
 	string filename = "XjgP1.root";
-	plotFile(filename);
+	//plotFile(filename);
+	plot1D(filename);
 }
