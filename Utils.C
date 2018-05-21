@@ -13,6 +13,7 @@ T quadrature(T* a, int SIZE){
 
 float deltaPhi(float i1, float i2);
 
+
 class Scalar
 {
 public:
@@ -398,3 +399,4 @@ float deltaPhi(float i1, float i2){
 	}
 	return r;
 }
+

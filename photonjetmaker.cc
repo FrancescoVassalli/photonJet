@@ -19,6 +19,8 @@ using namespace std;
 
 //float** qXjPhiTo2DArray(queue<XjPhi> in); //in utils for now
 
+float deltaPhi(Photon p, Jet j);
+
 class DiJet
 {
 public:
@@ -67,9 +69,12 @@ public:
 		jet = j;
 		makeXjPhi();
 	}
+	PhotonJet(bool f){ //place holder for NULL events
+		xjphi= XjPhi(0,2*TMath::Pi());
+	}
 	PhotonJet(Photon p, DiJet d){
 		//get the Jet with the bigger difference in phi
-		if (deltaPhi(p,d.getleading()>deltaPhi(p,d.getsubleading())))
+		if (deltaPhi(p,d.getleading())>deltaPhi(p,d.getsubleading()))
 		{
 			jet = d.getleading();
 		}
@@ -169,7 +174,7 @@ void makeData(std::string filename, int nEvents){
   	queue<PhotonJet> map;
   	PhotonJet tempXj;
   	/* generation loop*/
-  	interest<<"Interest=0"<<'\n';
+  	string nullInterest="Interest=0";
   	bool interestHit=false;
   	int interestC=0;
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
@@ -197,6 +202,7 @@ void makeData(std::string filename, int nEvents){
     			//what to do for monojet events??
     			if(antikT->sizeJet()>1){
     				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0))));
+    				map.push(tempXj);
     			}
     			//this if is an error check process to see which events the XjPhi is screwing up
     			if (tempXj.getphi()<.8)
@@ -204,7 +210,6 @@ void makeData(std::string filename, int nEvents){
     				interestC++;
     				if (!interestHit)
     				{
-    					interest.clear();
     					interestHit=true;
     				}
     				interest<<"Number:"<<finalGammaCount<<'\n';
@@ -220,7 +225,6 @@ void makeData(std::string filename, int nEvents){
     			}
     			ss<<"Photon phi:"<<pythiaengine.event[i].phi()<<" Jet1 phi:"<<antikT->phi(0)<<" Jet2 phi:"<<antikT->phi(1)<<"\n";
     			ss<<"Photon pT:"<<pythiaengine.event[i].pT()<<" Jet1 pT:"<<antikT->pT(0)<<" Jet2 pT:"<<antikT->pT(1)<<"\n";
-    			map.push(tempXj);
     			//create a map of XjPhi and output that data to TFile or txt or something 
      			
     		}
@@ -245,14 +249,20 @@ void makeData(std::string filename, int nEvents){
   	interest<<interestC;
   	int counter=0;
   	while(!map.empty()){
-  		cout<<map.front();
+  		/*cout<<map.front();*/
   		xjtemp=map.front().getXj().value;
   		phitemp=map.front().getphi().value;
   		t->Fill();
   		//out the file 
   		map.pop();
   	}
-  	cout<<interest.str();
+  	if (!interestHit)
+  	{
+  		cout<<nullInterest;
+  	}
+  	else{
+  		cout<<interest.str();
+  	}
   	t->Write();
   	f->Write();
   	f->Close();
@@ -262,9 +272,18 @@ void makeData(std::string filename, int nEvents){
 int main()
 {
 	string fileOut = "XjgP1.root";
-	int nEvents = 10000;
+	int nEvents = 100000;
 	makeData(fileOut,nEvents);
 	return 0;
+}
+
+float deltaPhi(Photon p, Jet j){
+	Scalar r= Scalar(TMath::Abs((p.getphi()-j.getphi()).value));
+	if (r>TMath::Pi())
+	{
+		r= r*(-1)-2*TMath::Pi();
+	}
+	return r.value;
 }
 
 /*float** qXjPhiTo2DArray(queue<XjPhi> in){
