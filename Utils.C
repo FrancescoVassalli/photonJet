@@ -1,15 +1,18 @@
 template<class T>
-	T quadrature(T d1, T d2){
-		return TMath::Sqrt((double)d1*d1+d2*d2);
-	}
-	template<class T>
-	T quadrature(T* a, int SIZE){
-		T* b = clone(a);
-		arrayMultiply(b,b,SIZE);
-		T r = sum(b,SIZE);
-		return TMath::Sqrt(r);
+T quadrature(T d1, T d2){
+	return TMath::Sqrt((double)d1*d1+d2*d2);
+}
 
-	}
+template<class T>
+T quadrature(T* a, int SIZE){
+	T* b = clone(a);
+	arrayMultiply(b,b,SIZE);
+	T r = sum(b,SIZE);
+	return TMath::Sqrt(r);
+}
+
+float deltaPhi(float i1, float i2);
+
 class Scalar
 {
 public:
@@ -328,23 +331,15 @@ public:
 	XjPhi(float pt1, float phi1, float pt2, float phi2){
 		//calculate scalar Xjs from parameters 
 		xj=Scalar(smaller(pt1,pt2)/bigger(pt1,pt2));
-		phi=Scalar(TMath::Abs(Scalar(phi2-phi1).value));
+		phi=Scalar(deltaPhi(phi1,phi2));
 	}
 	XjPhi(Jet leading, Jet subleading){
 		xj=Scalar(subleading/leading);
-		phi = Scalar(TMath::Abs(Scalar(subleading.getphi()-leading.getphi()).value));
-		if (phi>TMath::Pi())
-		{
-			phi-=TMath::Pi();
-		}
+		phi = Scalar(deltaPhi(leading.getphi().value,subleading.getphi().value));
 	}
 	XjPhi(Photon p, Jet j){
 		xj=(smaller(p.getpT(),j.getpT())/bigger(p.getpT(),j.getpT()));
-		phi = TMath::Abs(Scalar(p.getphi()-j.getphi()).value);
-		if (phi>TMath::Pi())
-		{
-			phi-=TMath::Pi();
-		}
+		phi = Scalar(deltaPhi(p.getphi().value,j.getphi().value));
 	}
 	XjPhi(Scalar xj, Scalar phi){
 		this->xj=xj;
@@ -367,6 +362,15 @@ private:
 	Scalar phi;
 };
 
+//not sure of all the inheritence rules on virtualization/abstracttion want it to do all the same things as a Scalar but check for <PI b4 all the returns
+class Angle : public Scalar
+{
+public:
+	Angle();
+	~Angle();
+	
+};
+
 #include <queue>
 
 float** qXjPhiTo2DArray(queue<XjPhi> in){
@@ -383,4 +387,14 @@ float** qXjPhiTo2DArray(queue<XjPhi> in){
 	out[0]=o1;
 	out[1]=o2;
 	return out;
+}
+
+//takes two angles and returns their difference in Phi must be less than Pi
+float deltaPhi(float i1, float i2){
+	float r = TMath::Abs(i1-i2);
+	if (r>TMath::Pi())
+	{
+		r= 2*TMath::Pi()-r;
+	}
+	return r;
 }

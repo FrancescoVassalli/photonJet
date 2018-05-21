@@ -42,7 +42,7 @@ void plotFile(string filename){
 	TCanvas *tc = new TCanvas();
 	TChain *gamma_tree = new TChain("tree100");
 	gamma_tree->Add(filename.c_str());
-	TH2F *plot = new TH2F("plot1","",20,0,2*TMath::Pi(),20,0,1); //can make mondular hist names 
+	TH2F *plot = new TH2F("plot1","",20,0,TMath::Pi(),20,0,1); //can make mondular hist names 
 	gStyle->SetOptStat(1);
 	/*make the plot nice*/
 	gamma_tree->Draw("xj:phi>>plot1");

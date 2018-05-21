@@ -69,19 +69,19 @@ public:
 	}
 	PhotonJet(Photon p, DiJet d){
 		//get the Jet with the bigger difference in phi
-		if (TMath::Abs(Scalar(p.getphi()-d.getleading().getphi()).value)>TMath::Abs(Scalar(p.getphi()-d.getsubleading().getphi()).value))
+		if (deltaPhi(p,d.getleading()>deltaPhi(p,d.getsubleading())))
 		{
 			jet = d.getleading();
 		}
 		else{
 			jet = d.getsubleading();
 		}
-		this->photon=p;
+		photon=p;
 		makeXjPhi();
 	}
 	PhotonJet(Photon p, Jet j1, Jet j2){
 		photon=p;
-		if (TMath::Abs(Scalar(p.getphi()-j1.getphi()).value)>TMath::Abs(Scalar(p.getphi()-j2.getphi()).value))
+		if (deltaPhi(p,j1)>deltaPhi(p,j2))
 		{
 			jet=j1;
 		}
@@ -96,6 +96,12 @@ public:
 	}
 	Scalar getphi(){
 		return xjphi.getphi();
+	}
+	Photon getPhoton(){
+		return photon;
+	}
+	Jet getJet(){
+		return jet;
 	}
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
@@ -122,6 +128,24 @@ queue<Jet> getSignificantJet(SlowJet* antikT, float minGeV, float rad){
 	return r;
 }
 
+template<class T>
+T positivePhi(T in){
+	if (in<0)
+	{
+		in = in+2*TMath::Pi();
+	}
+	return in;
+}
+
+inline bool quickPhotonCheck(Particle p){
+	return p.id()==22&&p.isFinal()&&p.pT()>10&&TMath::Abs(p.eta())<1;
+}
+
+/* list of "problem" events that I am still getting
+	1) MonoJet Events 
+	2) Jet pair is not in in leading or subleading
+*/
+
 void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* t=new TTree("tree100","events");
@@ -145,6 +169,9 @@ void makeData(std::string filename, int nEvents){
   	queue<PhotonJet> map;
   	PhotonJet tempXj;
   	/* generation loop*/
+  	interest<<"Interest=0"<<'\n';
+  	bool interestHit=false;
+  	int interestC=0;
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
   		if (!pythiaengine.next()){
@@ -158,23 +185,36 @@ void makeData(std::string filename, int nEvents){
     	/* zero out */
     	for (int i = 0; i < pythiaengine.event.size(); ++i)
     	{
-    		if (pythiaengine.event[i].id()==22&&pythiaengine.event[i].isFinal()&&pythiaengine.event[i].pT()>10&&TMath::Abs(pythiaengine.event[i].eta())<1)
+    		if (quickPhotonCheck(pythiaengine.event[i]))
     		{
     			finalGammaCount++;
     			//get the generation process 
     			//cout<<pythiaengine.process[i].pT()<<'\n';
-    			Photon myPhoton = Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi(),pythiaengine.event[i].eta());
+    			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta());
     			antikT->analyze(pythiaengine.event);
     			ss<<finalGammaCount<<'\n';
-    			tempXj=PhotonJet(Photon(pythiaengine.event[i].pT(),pythiaengine.event[i].phi()),Jet(antikT->pT(1),antikT->phi(1)),Jet(antikT->pT(0),antikT->phi(0)));
+    			//only works if the Jet pair is the leading or subleading jet 
+    			//what to do for monojet events??
+    			if(antikT->sizeJet()>1){
+    				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0))));
+    			}
+    			//this if is an error check process to see which events the XjPhi is screwing up
     			if (tempXj.getphi()<.8)
     			{
+    				interestC++;
+    				if (!interestHit)
+    				{
+    					interest.clear();
+    					interestHit=true;
+    				}
     				interest<<"Number:"<<finalGammaCount<<'\n';
+    				interest<<"Photon:"<<tempXj.getPhoton().getpT().value<<","<<tempXj.getPhoton().getphi().value<<'\n'<<"Select:"<<tempXj.getJet().getpT().value;
     				// get all significant jets 
-    				queue<Jet> significant = getSignificantJet(antikT, 10, .4);
+    				queue<Jet> significant = getSignificantJet(antikT,10,.4);
     				int printcount=0;
     				while(!significant.empty()){
-    					interest<<"Jet"<<printcount<<": "<<significant.front().getpT().value<<","<<significant.front().getphi().value<<'\n';
+    					interest<<"Jet"<<printcount<<": "<<significant.front().getpT().value<<","<<positivePhi(significant.front().getphi()).value<<'\n';
+    					significant.pop();
     					printcount++;
     				}
     			}
@@ -202,7 +242,7 @@ void makeData(std::string filename, int nEvents){
   	t->Branch("phi",&phitemp);
   	cout<<ss.str();
   	cout<<"Map:"<<finalGammaCount<<endl;
-  	cout<<interest.str();
+  	interest<<interestC;
   	int counter=0;
   	while(!map.empty()){
   		cout<<map.front();
@@ -212,6 +252,7 @@ void makeData(std::string filename, int nEvents){
   		//out the file 
   		map.pop();
   	}
+  	cout<<interest.str();
   	t->Write();
   	f->Write();
   	f->Close();
@@ -220,8 +261,8 @@ void makeData(std::string filename, int nEvents){
 
 int main()
 {
-	string fileOut = "XjgP.root";
-	int nEvents = 50000;
+	string fileOut = "XjgP1.root";
+	int nEvents = 10000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
