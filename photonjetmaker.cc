@@ -154,7 +154,6 @@ inline bool quickPhotonCheck(Particle p){
 void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* t=new TTree("tree100","events");
-
   	/*pythia set up*/
   	Pythia pythiaengine;
   	pythiaengine.readString("Beams:eCM = 2760.");
@@ -195,7 +194,7 @@ void makeData(std::string filename, int nEvents){
     			finalGammaCount++;
     			//get the generation process 
     			//cout<<pythiaengine.process[i].pT()<<'\n';
-    			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta());
+    			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
     			antikT->analyze(pythiaengine.event);
     			ss<<finalGammaCount<<'\n';
     			//only works if the Jet pair is the leading or subleading jet 

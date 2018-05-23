@@ -187,6 +187,18 @@ T smaller(T x, T y){
 	}
 }
 
+bool isDirect(int i)
+{
+  if(i > 200 and i < 267)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
 class Photon
 {
 public:
@@ -202,6 +214,11 @@ public:
 		this->pT = Scalar((float)_pT);
 		this->phi= Scalar((float)_phi);
 	}
+	Photon(double _pT,double _phi,bool process){
+		this->pT = Scalar((float)_pT);
+		this->phi= Scalar((float)_phi);
+		direct=process;
+	}
 	Photon(float _pT,float _phi, float _eta){
 		this->pT = Scalar(_pT);
 		this->phi= Scalar(_phi);
@@ -211,6 +228,12 @@ public:
 		this->pT = Scalar((float)_pT);
 		this->phi= Scalar((float)_phi);
 		this->eta= Scalar((float)_eta);
+	}
+	Photon(double _pT,double _phi, double _eta, bool process){
+		this->pT = Scalar((float)_pT);
+		this->phi= Scalar((float)_phi);
+		this->eta= Scalar((float)_eta);
+		direct=process;
 	}
 	~Photon(){}
 	Scalar getpT(){
@@ -242,6 +265,7 @@ private:
 	Scalar pT;
 	Scalar phi;
 	Scalar eta;
+	bool direct;
 
 };
 
