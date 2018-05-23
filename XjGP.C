@@ -3,12 +3,14 @@
 	by Francesco Vassalli
 */
 
-#include "Pythia8/Pythia.h"
-/*#include "TFile.h"
+//#include "Pythia8/Pythia.h"
+
+#include "TFile.h"
 #include "TTree.h"
 #include "TRandom3.h"
-#include "TMath.h"*/
+#include "TMath.h"
 #include "Utils.C" //split this into the three classes below needs like #IFNDEF
+#include "TPythia8.h"
 /*#include "XjPhi.C"
 #include "CollisionClasses.C"
 #include "SimpleMath.C"*/
@@ -19,7 +21,7 @@
 
 float deltaPhi(Photon p, Jet j);
 
-using namespace Pythia8;
+//using namespace Pythia8;
 using namespace std;
 
 class DiJet

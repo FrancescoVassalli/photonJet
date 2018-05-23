@@ -95,6 +95,10 @@ public:
 		}
 		makeXjPhi();
 	}
+	PhotonJet(Photon p){//for events with no paired jet
+		photon=p;
+		xjphi=XjPhi(0,0);
+	}
 	~PhotonJet(){}
 	Scalar getXj(){
 		return xjphi.getXj();
@@ -171,6 +175,7 @@ void makeData(std::string filename, int nEvents){
   	stringstream ss;
   	stringstream interest;
   	queue<PhotonJet> map;
+  	queue<float> monoJetEventPhis;
   	PhotonJet tempXj;
   	/* generation loop*/
   	string nullInterest="Interest=0";
@@ -201,6 +206,11 @@ void makeData(std::string filename, int nEvents){
     			//what to do for monojet events??
     			if(antikT->sizeJet()>1){
     				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0))));
+    				map.push(tempXj);
+    			}
+    			else{
+    				tempXj=PhotonJet(myPhoton);
+    				monoJetEventPhis.push(myPhoton.getphi().value);
     				map.push(tempXj);
     			}
     			//this if is an error check process to see which events the XjPhi is screwing up
@@ -240,13 +250,22 @@ void makeData(std::string filename, int nEvents){
   	}
   	//data out 
   	float xjtemp;
-  	float phitemp;
+  	float phitemp,monPhitemp;
   	t->Branch("xj",&xjtemp);
   	t->Branch("phi",&phitemp);
+  	t->Branch("monPhi",&monPhitemp);
   	cout<<ss.str();
   	cout<<"Map:"<<finalGammaCount<<endl;
   	interest<<interestC;
   	int counter=0;
+  	while(!monoJetEventPhis.empty()){
+  		xjtemp=map.front().getXj().value;
+  		phitemp=map.front().getphi().value;
+  		monPhitemp=monoJetEventPhis.front();
+  		monoJetEventPhis.pop();
+  		t->Fill();
+  		map.pop();
+  	}
   	while(!map.empty()){
   		/*cout<<map.front();*/
   		xjtemp=map.front().getXj().value;

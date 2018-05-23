@@ -1,4 +1,4 @@
-/*template<class T>
+template<class T>
 T quadrature(T d1, T d2){
 	return TMath::Sqrt((double)d1*d1+d2*d2);
 }
@@ -9,11 +9,11 @@ T quadrature(T* a, int SIZE){
 	arrayMultiply(b,b,SIZE);
 	T r = sum(b,SIZE);
 	return TMath::Sqrt(r);
-}*/
+}
 
 float deltaPhi(float i1, float i2);
 
-/*
+
 class Scalar
 {
 public:
@@ -164,7 +164,7 @@ struct Point
 {
 	Scalar x;
 	Scalar y;
-};*/
+};
 
 template<class T>
 T bigger(T x, T y){
