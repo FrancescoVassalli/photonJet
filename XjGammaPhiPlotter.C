@@ -66,6 +66,6 @@ void plot1D(string filename){
 
 void XjGammaPhiPlotter(){
 	string filename = "XjgP1.root";
-	//plotFile(filename);
+	plotFile(filename);
 	plot1D(filename);
 }
