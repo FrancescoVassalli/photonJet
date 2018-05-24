@@ -1,3 +1,5 @@
+#include <queue>
+
 template<class T>
 T quadrature(T d1, T d2){
 	return TMath::Sqrt((double)d1*d1+d2*d2);
@@ -395,8 +397,6 @@ public:
 	~Angle();
 	
 };
-
-#include <queue>
 
 float** qXjPhiTo2DArray(queue<XjPhi> in){
 	float** out = new float*[2];

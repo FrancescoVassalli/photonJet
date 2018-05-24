@@ -3,8 +3,6 @@
 	by Francesco Vassalli
 */
 
-#include <sstream>
-#include <queue>
 #include "Pythia8/Pythia.h"
 using namespace Pythia8;
 using namespace std;
@@ -16,10 +14,36 @@ using namespace std;
 /*#include "XjPhi.C"
 #include "CollisionClasses.C"
 #include "SimpleMath.C"*/
+#include <sstream>
+#include <queue>
 
 //float** qXjPhiTo2DArray(queue<XjPhi> in); //in utils for now
 
 float deltaPhi(Photon p, Jet j);
+
+class myParticle
+{
+public:
+  myParticle();
+  ~myParticle();
+private:
+  int id;
+  Scalar pT;
+  Scalar phi;
+  Scalar eta;
+  
+};
+
+class myEvent
+{
+public:
+  myEvent();
+  ~myEvent();
+private:
+  std::vector<myParticle> particles;
+  bool photontype;
+  int count;
+};
 
 class DiJet
 {
@@ -157,30 +181,30 @@ inline bool quickPhotonCheck(Particle p){
 
 void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
-  	TTree* t=new TTree("tree100","events");
+  TTree* t=new TTree("tree100","events");
   	/*pythia set up*/
-  	Pythia pythiaengine;
-  	pythiaengine.readString("Beams:eCM = 2760.");
+  Pythia pythiaengine;
+  pythiaengine.readString("Beams:eCM = 200.");
  	pythiaengine.readString("promptphoton:all = on");
  	pythiaengine.readString("HardQCD:all = on");
  	pythiaengine.readString("PhaseSpace:pTHatMin = 10.");
  	pythiaengine.readString("Random::setSeed = on");
-  	pythiaengine.readString("Random::seed =0");
-  	pythiaengine.init();
+  pythiaengine.readString("Random::seed =0");
+  pythiaengine.init();
 
   	/* Tbranching  */
-  	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1);
+  SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1);
   	//Jet *temp =NULL;
-  	int finalGammaCount=0;
-  	stringstream ss;
-  	stringstream interest;
-  	queue<PhotonJet> map;
-  	queue<float> monoJetEventPhis;
-  	PhotonJet tempXj;
+  int finalGammaCount=0;
+  stringstream ss;
+  stringstream interest;
+  queue<PhotonJet> map;
+  queue<float> monoJetEventPhis;
+  PhotonJet tempXj;
   	/* generation loop*/
-  	string nullInterest="Interest=0";
-  	bool interestHit=false;
-  	int interestC=0;
+  string nullInterest="Interest=0";
+  bool interestHit=false;
+  int interestC=0;
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
   		if (!pythiaengine.next()){
@@ -286,9 +310,10 @@ void makeData(std::string filename, int nEvents){
   	f->Close();
 }
 
-int main(int argc char const *argv[] )
+
+int main()
 {
-	string fileOut = string(argv[1]);
+	string fileOut = "XjgP1.root";
 	int nEvents = 100000;
 	makeData(fileOut,nEvents);
 	return 0;
