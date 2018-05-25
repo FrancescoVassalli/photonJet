@@ -40,12 +40,13 @@ void plotText(string filename){
 
 void plotFile(TChain *gamma_tree){
 	TCanvas *tc = new TCanvas();
-	double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1};
-	TH2F *plot = new TH2F("plot1","",20,0,TMath::Pi(),10,bins); //can make mondular hist names 
+	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
+	TH2F *plot = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
 	gStyle->SetOptStat(1);
 	/*make the plot nice*/
 	tc->SetRightMargin(.15);
-	gamma_tree->Draw("xj:phi>>plot1");
+	//plot->Scale(1,"width");
+	gamma_tree->Draw("xjf:phi>>plot1");
 	axisTitles(plot,"#Delta#phi","Xj");
 	axisTitleSize(plot,.07);
 	axisTitleOffset(plot,1);
@@ -54,13 +55,16 @@ void plotFile(TChain *gamma_tree){
 
 void plot1D(TChain* gamma_tree){
 	TCanvas *tc = new TCanvas();
-	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1};
-	TH1F *plot = new TH1F("plota","",10,bins); //can make mondular hist names 
+	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5};
+	TH1F *plot = new TH1F("plota","",12,bins); //can make mondular hist names 
 	//get the normalization right
 	//plot
 	/*make the plot nice*/
-	gamma_tree->Draw("xj>>plota");
+	gamma_tree->Draw("xjd>>plota");
 	plot->Scale(1/plot->Integral(),"width");
+	axisTitles(plot,"Xj","");
+	axisTitleSize(plot,.07);
+	axisTitleOffset(plot,1);
 	plot->Draw("p");
 }
 
