@@ -38,34 +38,56 @@ void plotText(string filename){
 
 }
 
-void plotFile(string filename){
+void plotFile(TChain *gamma_tree){
 	TCanvas *tc = new TCanvas();
-	TChain *gamma_tree = new TChain("tree100");
-	gamma_tree->Add(filename.c_str());
-	TH2F *plot = new TH2F("plot1","",20,0,TMath::Pi(),20,0,1); //can make mondular hist names 
+	double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1};
+	TH2F *plot = new TH2F("plot1","",20,0,TMath::Pi(),10,bins); //can make mondular hist names 
 	gStyle->SetOptStat(1);
 	/*make the plot nice*/
+	tc->SetRightMargin(.15);
 	gamma_tree->Draw("xj:phi>>plot1");
+	axisTitles(plot,"#Delta#phi","Xj");
+	axisTitleSize(plot,.07);
+	axisTitleOffset(plot,1);
 	plot->Draw("colz");
 }
 
-void plot1D(string filename){
+void plot1D(TChain* gamma_tree){
 	TCanvas *tc = new TCanvas();
-	TChain *gamma_tree = new TChain("tree100");
-	gamma_tree->Add(filename.c_str());
 	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1};
 	TH1F *plot = new TH1F("plota","",10,bins); //can make mondular hist names 
 	//get the normalization right
-	plot->Scale(1/plot->Integral(),"width");
-	gStyle->SetOptStat(1);
+	//plot
 	/*make the plot nice*/
 	gamma_tree->Draw("xj>>plota");
+	plot->Scale(1/plot->Integral(),"width");
 	plot->Draw("p");
+}
+
+void plotMonoJets(TChain* gamma_tree){
+	TCanvas *tc = new TCanvas();
+	TH1F* plot =new TH1F("mono","",20,0,2*TMath::Pi());
+	gamma_tree->Draw("monPhi>>mono");
+	plot->Draw("p");
+	cout<<"Monojets:"<<plot->Integral()<<'\n';
+	cout<<"Total:"<<gamma_tree->GetEntries()<<'\n';
+	cout<<"Ratio:"<<plot->Integral()/gamma_tree->GetEntries()<<'\n';
 }
 
 
 void XjGammaPhiPlotter(){
-	string filename = "XjgP1.root";
-	plotFile(filename);
-	plot1D(filename);
-}
+	string filename = "XjPhi";
+	string extension = ".root";
+	int filecount=70;
+	TChain *data = new TChain("tree100");
+	string temp=filename+extension;
+	data->Add(temp.c_str());
+	for (int i = 1; i < filecount; ++i)
+	{
+		temp = filename+to_string(i)+extension;
+		data->Add(temp.c_str());
+	}
+	plotFile(data);
+	//plot1D(data);
+	//plotMonoJets(data);
+}	

@@ -1,6 +1,6 @@
 #!/bin/csh                                                                                                                                            
 
-source /phenix/u/vassalli/.cshrc
+#source /phenix/u/vassalli/.cshrc
 
 @ p = $1
 #@ s = $2 + ($p / 100)
@@ -17,11 +17,11 @@ source /phenix/u/vassalli/.cshrc
 #set simsfile = "/phenix/scratch/kurthill/Run16dAu_AMPT_Sims/simdata/dAu200_central/Run16dAu200_ampt_recoTree_noDCAcut_${s}_"${p}".root"
 
 #set outfile = "/phenix/scratch/kurthill/Run16dAu_AMPT_Sims/simdata/dAu200_central/efficiency_histos_zcut_${zcut}_${s}_${p}.root"                     
-set outfile = "/direct/phenix+u/chase/vassalli/XjGP${p}.root"
+set outfile = "/home/user/Dropbox/Nagel/project/photon/RCF/"
 
-./photonjetmaker XjPhi${p}.root
-cp XjPhi${p}.root $outfile
-rm XjPhi${p}.root
+./photonjetmaker XjPhi.root
+#mv XjPhi.root $outfile/XjPhi$1.root
+#rm XjPhi.root
 
 exit 0
 

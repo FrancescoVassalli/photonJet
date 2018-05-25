@@ -256,6 +256,9 @@ public:
 	void seteta(float _eta){
 		this->eta = Scalar(_eta);
 	}
+	bool isDirect(){
+		return direct;
+	}
 	Point getAngle(){
 		Point r;
 		r.x=phi;
@@ -365,7 +368,7 @@ public:
 		phi = Scalar(deltaPhi(leading.getphi().value,subleading.getphi().value));
 	}
 	XjPhi(Photon p, Jet j){
-		xj=(smaller(p.getpT(),j.getpT())/bigger(p.getpT(),j.getpT()));
+		xj=j.getpT()/p.getpT();
 		phi = Scalar(deltaPhi(p.getphi().value,j.getphi().value));
 	}
 	XjPhi(Scalar xj, Scalar phi){

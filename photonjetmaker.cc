@@ -112,6 +112,9 @@ public:
 	Jet getJet(){
 		return jet;
 	}
+	bool isDirect(){
+		return photon.isDirect();
+	}
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
     }
@@ -160,7 +163,7 @@ void makeData(std::string filename, int nEvents){
   	TTree* t=new TTree("tree100","events");
   	/*pythia set up*/
   	Pythia pythiaengine;
-  	pythiaengine.readString("Beams:eCM = 2760.");
+  	pythiaengine.readString("Beams:eCM = 200.");
  	pythiaengine.readString("promptphoton:all = on");
  	pythiaengine.readString("HardQCD:all = on");
  	pythiaengine.readString("PhaseSpace:pTHatMin = 10.");
@@ -202,11 +205,12 @@ void makeData(std::string filename, int nEvents){
     			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
     			antikT->analyze(pythiaengine.event);
     			ss<<finalGammaCount<<'\n';
-    			//only works if the Jet pair is the leading or subleading jet 
-    			//what to do for monojet events??
     			if(antikT->sizeJet()>1){
     				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0))));
-    				map.push(tempXj);
+    				if (tempXj.getphi()>7*TMath::Pi()/8)
+    				{
+    					map.push(tempXj);
+    				}//do I want an else?
     			}
     			else{
     				tempXj=PhotonJet(myPhoton);
@@ -214,7 +218,7 @@ void makeData(std::string filename, int nEvents){
     				map.push(tempXj);
     			}
     			//this if is an error check process to see which events the XjPhi is screwing up
-    			if (tempXj.getphi()<.8)
+    			if (tempXj.getphi()<7*TMath::Pi()/8)
     			{
     				interestC++;
     				if (!interestHit)
@@ -249,18 +253,31 @@ void makeData(std::string filename, int nEvents){
     	}*/
   	}
   	//data out 
-  	float xjtemp;
+  	float xjdtemp;
+  	float xjftemp;
   	float phitemp,monPhitemp;
-  	t->Branch("xj",&xjtemp);
+  	t->Branch("xjd",&xjdtemp);
+  	t->Branch("xjf",&xjftemp);
   	t->Branch("phi",&phitemp);
   	t->Branch("monPhi",&monPhitemp);
+  	bool directTemp;
+  	t->Branch("direct", &directTemp);
   	cout<<ss.str();
   	cout<<"Map:"<<finalGammaCount<<endl;
   	interest<<interestC;
   	int counter=0;
   	while(!monoJetEventPhis.empty()){
-  		xjtemp=map.front().getXj().value;
   		phitemp=map.front().getphi().value;
+  		directTemp=map.front().isDirect();
+  		if (directTemp)
+  		{
+  			xjdtemp=map.front().getXj().value;
+  			xjftemp=-1;
+  		}
+  		else{
+  			xjftemp=map.front().getXj().value;
+  			xjdtemp=-1;
+  		}
   		monPhitemp=monoJetEventPhis.front();
   		monoJetEventPhis.pop();
   		t->Fill();
@@ -268,8 +285,18 @@ void makeData(std::string filename, int nEvents){
   	}
   	while(!map.empty()){
   		/*cout<<map.front();*/
-  		xjtemp=map.front().getXj().value;
   		phitemp=map.front().getphi().value;
+  		directTemp=map.front().isDirect();
+  		if (directTemp)
+  		{
+  			xjdtemp=map.front().getXj().value;
+  			xjftemp=-1;
+  		}
+  		else{
+  			xjftemp=map.front().getXj().value;
+  			xjdtemp=-1;
+  		}
+  		monPhitemp=-2*TMath::Pi();
   		t->Fill();
   		//out the file 
   		map.pop();
@@ -286,10 +313,10 @@ void makeData(std::string filename, int nEvents){
   	f->Close();
 }
 
-int main(int argc char const *argv[] )
+int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
-	int nEvents = 100000;
+	int nEvents = 1000;
 	makeData(fileOut,nEvents);
 	return 0;
 }

@@ -6,7 +6,7 @@ Universe        = vanilla
 Notification    = Never
 
 # The executable we want to run.
-Executable   =  /direct/phenix+u/chase/CondorFran.csh
+Executable   =  /direct/phenix+u/vassalli/CondorFran.csh
 
 # The argument to pass to the executable.
 Arguments       = $(Process) 
@@ -28,19 +28,19 @@ Priority        = +20
 
 # Used to give jobs a directory with respect to file input
 # and output.
-Initialdir   = /direct/phenix+u/chase/vassalli
+Initialdir   = /direct/phenix+u/vassalli
 
 # Input file given to the job.
 Input           = /dev/null
 
 # The job’s stdout is sent to this file.
-Output       =/direct/phenix+u/chase/vassalli/condor_logs/out.$(Process)
+Output       =/direct/phenix+u/vassalli/condor_logs/out.$(Process)
 
 # The job’s stderr is sent to this file.
-Error        =/direct/phenix+u/chase/vassalli/condor_logs/err.$(Process))
+Error        =/direct/phenix+u/vassalli/condor_logs/err.$(Process))
 
 # The condor log file for this job, useful when debuggin
-Log          =/direct/phenix+u/chase/vassalli/condor_logs/log.$(Process)
+Log          =/direct/phenix+u/vassalli/condor_logs/log.$(Process)
 
 # Email address to send notification to.
 Notify_user     = frva5829@colorado.edu
