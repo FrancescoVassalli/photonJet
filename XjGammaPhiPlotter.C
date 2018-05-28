@@ -46,26 +46,36 @@ void plotFile(TChain *gamma_tree){
 	/*make the plot nice*/
 	tc->SetRightMargin(.15);
 	//plot->Scale(1,"width");
-	gamma_tree->Draw("xjf:phi>>plot1");
+	gamma_tree->Draw("xjd:phi>>plot1");
 	axisTitles(plot,"#Delta#phi","Xj");
 	axisTitleSize(plot,.07);
 	axisTitleOffset(plot,1);
-	plot->Draw("colz");
+	//gPad->SetLogz(); this looks bad so getting more stats
+	plot->Draw("lego2");
 }
 
 void plot1D(TChain* gamma_tree){
 	TCanvas *tc = new TCanvas();
 	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5};
-	TH1F *plot = new TH1F("plota","",12,bins); //can make mondular hist names 
-	//get the normalization right
-	//plot
+	const int binL=12;
+	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
+	TH1F *other = new TH1F("plotb","",binL,bins);
 	/*make the plot nice*/
 	gamma_tree->Draw("xjd>>plota");
+	gamma_tree->Draw("xjf>>plotb");
 	plot->Scale(1/plot->Integral(),"width");
+	other->Scale(1/other->Integral(),"width");
+	TLegend *tl =new TLegend(.1,.6,.4,.9);
+	tl->AddEntry(plot,"direct","p");
+	tl->AddEntry(other,"frag","p");
 	axisTitles(plot,"Xj","");
 	axisTitleSize(plot,.07);
 	axisTitleOffset(plot,1);
+	smallBorders();
+	makeDifferent(other,1);
 	plot->Draw("p");
+	other->Draw("same");
+	tl->Draw();
 }
 
 void plotMonoJets(TChain* gamma_tree){
@@ -91,7 +101,7 @@ void XjGammaPhiPlotter(){
 		temp = filename+to_string(i)+extension;
 		data->Add(temp.c_str());
 	}
-	plotFile(data);
-	//plot1D(data);
+	//plotFile(data);
+	plot1D(data);
 	//plotMonoJets(data);
 }	

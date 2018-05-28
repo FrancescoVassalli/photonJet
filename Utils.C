@@ -168,6 +168,31 @@ struct Point
 	Scalar y;
 };
 
+class Parton
+{
+public:
+	Parton(){}
+	~Parton(){}
+	Parton(int ID, float phi, float y, float px, float py){
+		quark=isQuark(ID);
+		this->phi=phi;
+		this->y=y;
+	}
+	float getphi(){
+		return phi;
+	}
+	float gety(){
+		return y;
+	}
+private:
+	bool quark;
+	float phi;
+	float y;	
+	bool isQuark(int ID){
+		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
+	}
+};
+
 template<class T>
 T bigger(T x, T y){
 	if (x>y)
@@ -256,6 +281,9 @@ public:
 	void seteta(float _eta){
 		this->eta = Scalar(_eta);
 	}
+	void setParton(Parton p){
+		parton=p;
+	}
 	bool isDirect(){
 		return direct;
 	}
@@ -271,6 +299,7 @@ private:
 	Scalar phi;
 	Scalar eta;
 	bool direct;
+	Parton parton;
 
 };
 
@@ -284,10 +313,10 @@ public:
 		this->y = Scalar(_y);
 		this->r = Scalar(_r);
 	}
-	Jet(double _pT, double _phi){
+	Jet(double _pT, double _phi, double _y){
 		pT=Scalar(_pT);
 		phi=Scalar(_phi);
-		y=Scalar(0);
+		y=Scalar(_y);
 		r=0;
 	}
 	~Jet(){
@@ -304,6 +333,9 @@ public:
 	}
 	void setMult(int m){
 		mult=m;
+	}
+	void setParton(Parton p){
+		parton=p;
 	}
 	int getmult(){
 		return mult;
@@ -352,6 +384,7 @@ private:
 	int mult=0;
 	Jet* next=NULL;
 	Jet* pair=NULL;
+	Parton parton;
 	
 };
 

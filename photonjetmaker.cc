@@ -20,6 +20,14 @@ using namespace std;
 //float** qXjPhiTo2DArray(queue<XjPhi> in); //in utils for now
 
 float deltaPhi(Photon p, Jet j);
+float deltaR(Parton,Jet);
+
+template<class T>
+void swapPointer(T* a, T* b){
+	T* t=a;
+	a=b;
+	b=t;
+}
 
 class DiJet
 {
@@ -115,6 +123,17 @@ public:
 	bool isDirect(){
 		return photon.isDirect();
 	}
+	void matchPartons(Parton p1, Parton p2){
+		if (deltaR(p1,jet)<deltaR(p2,jet))
+		{
+			jet.setParton(p1);
+			photon.setParton(p2);
+		}
+		else{
+			jet.setParton(p2);
+			photon.setParton(p1);
+		}
+	}
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
     }
@@ -200,15 +219,17 @@ void makeData(std::string filename, int nEvents){
     		if (quickPhotonCheck(pythiaengine.event[i]))
     		{
     			finalGammaCount++;
-    			//get the generation process 
-    			//cout<<pythiaengine.process[i].pT()<<'\n';
+    			Parton p1 = Parton(pythiaengine.event[5].id(),positivePhi(pythiaengine.event[5].phi()),positivePhi(pythiaengine.event[5].eta()),pythiaengine.event[5].px(),pythiaengine.event[5].py());
+    			Parton p2 = Parton(pythiaengine.event[6].id(),positivePhi(pythiaengine.event[6].phi()),positivePhi(pythiaengine.event[6].eta()),pythiaengine.event[6].px(),pythiaengine.event[6].py());
     			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
     			antikT->analyze(pythiaengine.event);
-    			ss<<finalGammaCount<<'\n';
+    			//ss<<finalGammaCount<<'\n';
     			if(antikT->sizeJet()>1){
-    				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0))));
+    				//biasing by only looking at first 2?
+    				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),positivePhi(antikT->y(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),positivePhi(antikT->y(0))));
     				if (tempXj.getphi()>7*TMath::Pi()/8)
     				{
+    					tempXj.matchPartons(p1,p2);
     					map.push(tempXj);
     				}//do I want an else?
     			}
@@ -328,6 +349,9 @@ float deltaPhi(Photon p, Jet j){
 		r= r*(-1)+2*TMath::Pi();
 	}
 	return r.value;
+}
+inline float deltaR(Parton p, Jet j){
+	return TMath::Power(TMath::Power(TMath::Abs(p.getphi()-j.getphi().value),2)+TMath::Power(TMath::Abs(p.gety()-j.gety().value),2),.5);
 }
 
 /*float** qXjPhiTo2DArray(queue<XjPhi> in){
