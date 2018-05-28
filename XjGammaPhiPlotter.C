@@ -46,11 +46,12 @@ void plotFile(TChain *gamma_tree){
 	/*make the plot nice*/
 	tc->SetRightMargin(.15);
 	//plot->Scale(1,"width");
-	gamma_tree->Draw("xjd:phi>>plot1");
+	gamma_tree->Draw("xjf:phi>>plot1");
 	axisTitles(plot,"#Delta#phi","Xj");
 	axisTitleSize(plot,.07);
 	axisTitleOffset(plot,1);
-	//gPad->SetLogz(); this looks bad so getting more stats
+	plot->Scale(1/plot->Integral());
+	//gPad->SetLogz(); //this looks bad so getting more stats
 	plot->Draw("lego2");
 }
 
@@ -101,7 +102,7 @@ void XjGammaPhiPlotter(){
 		temp = filename+to_string(i)+extension;
 		data->Add(temp.c_str());
 	}
-	//plotFile(data);
-	plot1D(data);
+	plotFile(data);
+	//plot1D(data);
 	//plotMonoJets(data);
 }	

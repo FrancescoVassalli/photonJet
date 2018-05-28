@@ -134,6 +134,9 @@ public:
 			photon.setParton(p1);
 		}
 	}
+	bool isJetQuark(){
+		return jet.isJetQuark();
+	}
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
     }
@@ -281,8 +284,9 @@ void makeData(std::string filename, int nEvents){
   	t->Branch("xjf",&xjftemp);
   	t->Branch("phi",&phitemp);
   	t->Branch("monPhi",&monPhitemp);
-  	bool directTemp;
+  	bool directTemp,jetquark;
   	t->Branch("direct", &directTemp);
+  	t->Branch("jetquark",&jetquark);
   	cout<<ss.str();
   	cout<<"Map:"<<finalGammaCount<<endl;
   	interest<<interestC;
@@ -299,6 +303,7 @@ void makeData(std::string filename, int nEvents){
   			xjftemp=map.front().getXj().value;
   			xjdtemp=-1;
   		}
+  		jetquark=map.front().isJetQuark();
   		monPhitemp=monoJetEventPhis.front();
   		monoJetEventPhis.pop();
   		t->Fill();
@@ -317,6 +322,7 @@ void makeData(std::string filename, int nEvents){
   			xjftemp=map.front().getXj().value;
   			xjdtemp=-1;
   		}
+  		jetquark=map.front().isJetQuark();
   		monPhitemp=-2*TMath::Pi();
   		t->Fill();
   		//out the file 

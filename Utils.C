@@ -184,6 +184,9 @@ public:
 	float gety(){
 		return y;
 	}
+	bool getQuark(){
+		return quark;
+	}
 private:
 	bool quark;
 	float phi;
@@ -287,6 +290,7 @@ public:
 	bool isDirect(){
 		return direct;
 	}
+	
 	Point getAngle(){
 		Point r;
 		r.x=phi;
@@ -336,6 +340,9 @@ public:
 	}
 	void setParton(Parton p){
 		parton=p;
+	}
+	bool isJetQuark(){
+		return parton.isQuark();
 	}
 	int getmult(){
 		return mult;
