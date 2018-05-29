@@ -172,13 +172,23 @@ T positivePhi(T in){
 }
 
 inline bool quickPhotonCheck(Particle p){
-	return p.id()==22&&p.isFinal()&&p.pT()>10&&TMath::Abs(p.eta())<1;
+	return p.id()==22&&p.isFinal()&&p.pT()>10&&TMath::Abs(p.eta())<1.1;
 }
 
 /* list of "problem" events that I am still getting
 	1) MonoJet Events 
 	2) Jet pair is not in in leading or subleading / jets to one side
 */
+
+queue<myParticle> EventToQueue(Event e){
+	myParticle temp;
+	queue<myParticle> r;
+	for (int i = 0; i < e.size(); ++i)
+	{
+		temp = myParticle(e[i].id(),e[i].pT(),e[i].phi(),e[i].y());
+		r.push(temp);
+	}
+}
 
 void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
@@ -195,7 +205,8 @@ void makeData(std::string filename, int nEvents){
   	pythiaengine.init();
 
   	/* Tbranching  */
-  	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1);
+  	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1); // what should be my minimum jet pT
+  	 // are the monojets low pT photons with match 
   	//Jet *temp =NULL;
   	int finalGammaCount=0;
   	stringstream ss;
@@ -226,10 +237,10 @@ void makeData(std::string filename, int nEvents){
     			finalGammaCount++;
     			Parton p1 = Parton(pythiaengine.event[5].id(),positivePhi(pythiaengine.event[5].phi()),positivePhi(pythiaengine.event[5].eta()),pythiaengine.event[5].px(),pythiaengine.event[5].py());
     			Parton p2 = Parton(pythiaengine.event[6].id(),positivePhi(pythiaengine.event[6].phi()),positivePhi(pythiaengine.event[6].eta()),pythiaengine.event[6].px(),pythiaengine.event[6].py());
-    			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
+    			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()),EventToQueue(pythiaengine.event));
     			antikT->analyze(pythiaengine.event);
     			//ss<<finalGammaCount<<'\n';
-    			if(antikT->sizeJet()>1){
+    			if(antikT->sizeJet()>1&&myPhoton.getIsoEt()<3){
     				//biasing by only looking at first 2?
     				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),positivePhi(antikT->y(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),positivePhi(antikT->y(0))));
     				if (tempXj.getphi()>7*TMath::Pi()/8)
@@ -345,7 +356,7 @@ void makeData(std::string filename, int nEvents){
 int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
-	int nEvents = 1000;
+	int nEvents = 10000;
 	makeData(fileOut,nEvents);
 	return 0;
 }

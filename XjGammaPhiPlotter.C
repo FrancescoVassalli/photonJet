@@ -7,6 +7,7 @@ using namespace std;
 
 const double PI = TMath::Pi();
 
+/* //for when you dont use TTrees which you always should 
 void plotText(string filename){
 	ifstream inFile (filename.c_str()); //txt file containing the names of files to process
 	queue<string> files;
@@ -36,34 +37,45 @@ void plotText(string filename){
 
 	TH2F *plot = new TH2F("plot","",20,-3.14,TMath::Pi(),20,0,1);
 
-}
+}*/
 
-void plotFile(TChain *gamma_tree){
+void plotXjPhi(TChain *dirc,TChain *frag){
 	TCanvas *tc = new TCanvas();
+	tc->Divide(2,1);
 	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
-	TH2F *plot = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
-	gStyle->SetOptStat(1);
+	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
+	//gStyle->SetOptStat(1);
 	/*make the plot nice*/
-	tc->SetRightMargin(.15);
+	//tc->SetRightMargin(.15);
 	//plot->Scale(1,"width");
-	gamma_tree->Draw("xjf:phi>>plot1");
-	axisTitles(plot,"#Delta#phi","Xj");
-	axisTitleSize(plot,.07);
-	axisTitleOffset(plot,1);
-	plot->Scale(1/plot->Integral());
+	dirc->Draw("xj:phi>>plot1");
+	frag->Draw("xj:phi>>plot2");
+	axisTitles(p_dirc,"#Delta#phi","Xj");
+	axisTitleSize(p_dirc,.07);
+	axisTitleOffset(p_dirc,1);
+	axisTitles(p_frag,"#Delta#phi","Xj");
+	axisTitleSize(p_frag,.07);
+	axisTitleOffset(p_frag,1);
+	p_dirc->Scale(1/p_dirc->Integral());
+	p_frag->Scale(1/p_frag->Integral());
+	cout<<dirc->GetEntries()+frag->GetEntries()<<endl;
 	//gPad->SetLogz(); //this looks bad so getting more stats
-	plot->Draw("lego2");
+	tc->cd(1);
+	p_frag->Draw("lego2");
+	tc->cd(2);
+	p_dirc->Draw("lego2");
 }
 
-void plot1D(TChain* gamma_tree){
+void plot1D(TChain* dirc, TChain *frag){
 	TCanvas *tc = new TCanvas();
 	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5};
 	const int binL=12;
 	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
 	TH1F *other = new TH1F("plotb","",binL,bins);
 	/*make the plot nice*/
-	gamma_tree->Draw("xjd>>plota");
-	gamma_tree->Draw("xjf>>plotb");
+	dirc->Draw("xj>>plota");
+	frag->Draw("xj>>plotb");
 	plot->Scale(1/plot->Integral(),"width");
 	other->Scale(1/other->Integral(),"width");
 	TLegend *tl =new TLegend(.1,.6,.4,.9);
@@ -89,20 +101,49 @@ void plotMonoJets(TChain* gamma_tree){
 	cout<<"Ratio:"<<plot->Integral()/gamma_tree->GetEntries()<<'\n';
 }
 
+void xjgpT(TChain* dirc, TChain *frag){
+		TCanvas *tc = new TCanvas();
+	tc->Divide(2,1);
+	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
+	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
+	dirc->Draw("xj:gpT>>plot1");
+	frag->Draw("xj:gpT>>plot2");
+	axisTitles(p_dirc,"#gammapT","Xj");
+	axisTitleSize(p_dirc,.07);
+	axisTitleOffset(p_dirc,1);
+	axisTitles(p_frag,"#gammapT","Xj");
+	axisTitleSize(p_frag,.07);
+	axisTitleOffset(p_frag,1);
+	p_dirc->Scale(1/p_dirc->Integral());
+	p_frag->Scale(1/p_frag->Integral());
+
+	//gPad->SetLogz(); //this looks bad so getting more stats
+	tc->cd(1);
+	p_frag->Draw("lego2");
+	tc->cd(2);
+	p_dirc->Draw("lego2");
+}
+
 
 void XjGammaPhiPlotter(){
 	string filename = "XjPhi";
 	string extension = ".root";
 	int filecount=70;
-	TChain *data = new TChain("tree100");
+	TChain *dirc = new TChain("tree100"); //use tree200 for frag and tree100 for direct
+	TChain *frag = new TChain("tree200");
 	string temp=filename+extension;
-	data->Add(temp.c_str());
+	dirc->Add(temp.c_str());
+	frag->Add(temp.c_str());
 	for (int i = 1; i < filecount; ++i)
 	{
 		temp = filename+to_string(i)+extension;
-		data->Add(temp.c_str());
+		dirc->Add(temp.c_str());
+		frag->Add(temp.c_str());
 	}
-	plotFile(data);
-	//plot1D(data);
+	plotXjPhi(dirc,frag);
+	//plot1D(dirc,frag);
+	//plot4Bars(dirc,frag);
+	//plotFlavpT(dirc,frag);
 	//plotMonoJets(data);
 }	

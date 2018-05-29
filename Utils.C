@@ -229,6 +229,37 @@ bool isDirect(int i)
   }
 }
 
+class myParticle
+{
+public:
+	myParticle(){}
+	~myParticle(){}
+	myParticle(int id, float pT, float phi, float y){
+		this->id=id;
+		this->pT=pT;
+		this->phi=phi;
+		this->y=y;
+	}
+	int getId(){
+		return id;
+	}
+	float getpT(){
+		return pT;
+	}
+	float getphi(){
+		return phi;
+	}
+	float gety(){
+		return y;
+	}
+
+private:
+	int id;
+	float pT;
+	float phi;
+	float y;
+};
+
 class Photon
 {
 public:
@@ -265,6 +296,13 @@ public:
 		this->eta= Scalar((float)_eta);
 		direct=process;
 	}
+	Photon(double _pT,double _phi, double _eta, bool process, queue<myParticle> all){
+		this->pT = Scalar((float)_pT);
+		this->phi= Scalar((float)_phi);
+		this->eta= Scalar((float)_eta);
+		direct=process;
+		findIsoEt(all);
+	}
 	~Photon(){}
 	Scalar getpT(){
 		return pT;
@@ -290,6 +328,22 @@ public:
 	bool isDirect(){
 		return direct;
 	}
+
+	float findIsoEt(queue<myParticle> all){
+		isoEt=0;
+		while(!all.empty()){
+			if (inCone(all.front().gety(),all.front().getphi()))
+			{
+				isoEt+=all.front().getpT();
+			}
+			all.pop();
+		}
+		return isoEt;
+	}
+
+	float getIsoEt(){
+		return isoEt;
+	}
 	
 	Point getAngle(){
 		Point r;
@@ -303,8 +357,20 @@ private:
 	Scalar phi;
 	Scalar eta;
 	bool direct;
+	float isoEt;
 	Parton parton;
-
+	float etCone = 0.4;
+	bool inCone(float geta, float gphi)
+	{
+	  if( sqrt(TMath::Power(TMath::Abs(geta-eta.value),2)+TMath::Power(TMath::Abs(gphi-phi.value),2)) < etCone )
+	  {
+	    return true;
+	  }
+	  else
+	  {
+	    return false;
+	  }
+	}
 };
 
 class Jet
@@ -436,8 +502,8 @@ private:
 class Angle : public Scalar
 {
 public:
-	Angle();
-	~Angle();
+	Angle(){}
+	~Angle(){}
 	
 };
 
