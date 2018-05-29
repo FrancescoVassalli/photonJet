@@ -188,6 +188,7 @@ queue<myParticle> EventToQueue(Event e){
 		temp = myParticle(e[i].id(),e[i].pT(),e[i].phi(),e[i].y());
 		r.push(temp);
 	}
+	return r;
 }
 
 void makeData(std::string filename, int nEvents){

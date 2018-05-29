@@ -303,6 +303,12 @@ public:
 		direct=process;
 		findIsoEt(all);
 	}
+	Photon(double _pT,double _phi, double _eta,queue<myParticle> all){
+		this->pT = Scalar((float)_pT);
+		this->phi= Scalar((float)_phi);
+		this->eta= Scalar((float)_eta);
+		findIsoEt(all);
+	}
 	~Photon(){}
 	Scalar getpT(){
 		return pT;
