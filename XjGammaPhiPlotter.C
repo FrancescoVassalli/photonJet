@@ -41,13 +41,12 @@ void plotText(string filename){
 
 void plotXjPhi(TChain *dirc,TChain *frag){
 	TCanvas *tc = new TCanvas();
-	tc->Divide(2,1);
 	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
 	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
 	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
 	//gStyle->SetOptStat(1);
 	/*make the plot nice*/
-	//tc->SetRightMargin(.15);
+	tc->SetRightMargin(.15);
 	//plot->Scale(1,"width");
 	dirc->Draw("xj:phi>>plot1");
 	frag->Draw("xj:phi>>plot2");
@@ -62,15 +61,15 @@ void plotXjPhi(TChain *dirc,TChain *frag){
 	cout<<dirc->GetEntries()+frag->GetEntries()<<endl;
 	//gPad->SetLogz(); //this looks bad so getting more stats
 	tc->cd(1);
-	p_frag->Draw("lego2");
-	tc->cd(2);
-	p_dirc->Draw("lego2");
+	p_frag->Draw("colz");
+	//tc2->cd(1);
+	//p_dirc->Draw("lego2");
 }
 
 void plot1D(TChain* dirc, TChain *frag){
 	TCanvas *tc = new TCanvas();
-	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5};
-	const int binL=12;
+	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
+	const int binL=19;
 	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
 	TH1F *other = new TH1F("plotb","",binL,bins);
 	/*make the plot nice*/
@@ -82,8 +81,8 @@ void plot1D(TChain* dirc, TChain *frag){
 	tl->AddEntry(plot,"direct","p");
 	tl->AddEntry(other,"frag","p");
 	axisTitles(plot,"Xj","");
-	axisTitleSize(plot,.07);
-	axisTitleOffset(plot,1);
+	axisTitleSize(plot,.06);
+	axisTitleOffset(plot,.7);
 	smallBorders();
 	makeDifferent(other,1);
 	plot->Draw("p");
@@ -102,7 +101,7 @@ void plotMonoJets(TChain* gamma_tree){
 }
 
 void xjgpT(TChain* dirc, TChain *frag){
-		TCanvas *tc = new TCanvas();
+	TCanvas *tc = new TCanvas();
 	tc->Divide(2,1);
 	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
 	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
@@ -111,7 +110,7 @@ void xjgpT(TChain* dirc, TChain *frag){
 	frag->Draw("xj:gpT>>plot2");
 	axisTitles(p_dirc,"#gammapT","Xj");
 	axisTitleSize(p_dirc,.07);
-	axisTitleOffset(p_dirc,1);
+	axisTitleOffset(p_dirc,.8);
 	axisTitles(p_frag,"#gammapT","Xj");
 	axisTitleSize(p_frag,.07);
 	axisTitleOffset(p_frag,1);
@@ -129,20 +128,18 @@ void xjgpT(TChain* dirc, TChain *frag){
 void XjGammaPhiPlotter(){
 	string filename = "XjPhi";
 	string extension = ".root";
-	int filecount=70;
+	int filecount=139;
 	TChain *dirc = new TChain("tree100"); //use tree200 for frag and tree100 for direct
 	TChain *frag = new TChain("tree200");
-	string temp=filename+extension;
-	dirc->Add(temp.c_str());
-	frag->Add(temp.c_str());
-	for (int i = 1; i < filecount; ++i)
+	string temp;
+	for (int i = 0; i < filecount; ++i)
 	{
 		temp = filename+to_string(i)+extension;
 		dirc->Add(temp.c_str());
 		frag->Add(temp.c_str());
 	}
-	plotXjPhi(dirc,frag);
-	//plot1D(dirc,frag);
+	//plotXjPhi(dirc,frag);
+	plot1D(dirc,frag);
 	//plot4Bars(dirc,frag);
 	//plotFlavpT(dirc,frag);
 	//plotMonoJets(data);

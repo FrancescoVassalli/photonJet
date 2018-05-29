@@ -195,6 +195,8 @@ void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* directTree=new TTree("tree100","direct");
   	TTree* fragTree = new TTree("tree200","frag");
+  	TTree* fragTreeISO = new TTree("tree300","fragISO");
+  	TTree* directTreeISO = new TTree("tree400","directISO");
   	/*pythia set up*/
   	Pythia pythiaengine;
   	pythiaengine.readString("Beams:eCM = 200.");
@@ -241,7 +243,7 @@ void makeData(std::string filename, int nEvents){
     			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()),EventToQueue(pythiaengine.event));
     			antikT->analyze(pythiaengine.event);
     			//ss<<finalGammaCount<<'\n';
-    			if(antikT->sizeJet()>1&&myPhoton.getIsoEt()<3){
+    			if(antikT->sizeJet()>1){
     				//biasing by only looking at first 2?
     				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),positivePhi(antikT->y(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),positivePhi(antikT->y(0))));
     				if (tempXj.getphi()>7*TMath::Pi()/8)
@@ -306,11 +308,19 @@ void makeData(std::string filename, int nEvents){
   	fragTree->Branch("phi",&phitemp);
   	fragTree->Branch("gpT",&pTtemp);
   	directTree->Branch("gpT",&pTtemp);
+  	directTreeISO->Branch("xj",&xjtemp);
+  	fragTreeISO->Branch("xj",&xjtemp);
+  	directTreeISO->Branch("phi",&phitemp);
+  	fragTreeISO->Branch("phi",&phitemp);
+  	fragTreeISO->Branch("gpT",&pTtemp);
+  	directTreeISO->Branch("gpT",&pTtemp);
 
   	//t->Branch("monPhi",&monPhitemp);
   	bool jetquark;
   	fragTree->Branch("jetquark",&jetquark);
   	directTree->Branch("jetquark",&jetquark);
+  	fragTreeISO->Branch("jetquark",&jetquark);
+  	directTreeISO->Branch("jetquark",&jetquark);
   	//cout<<ss.str();
   	//cout<<"Map:"<<finalGammaCount<<endl;
   	//interest<<interestC;
@@ -330,6 +340,10 @@ void makeData(std::string filename, int nEvents){
   		jetquark=dmap.front().isJetQuark();
   		//monPhitemp=-2*TMath::Pi();
   		directTree->Fill();
+  		if (dmap.front().getPhoton().getIsoEt()<3)
+  		{
+  			directTreeISO->Fill();
+  		}
   		dmap.pop();
   	}
   	while(!fmap.empty()){
@@ -339,6 +353,10 @@ void makeData(std::string filename, int nEvents){
   		jetquark=fmap.front().isJetQuark();
   		//monPhitemp=-2*TMath::Pi();
   		fragTree->Fill();
+  		if (fmap.front().getPhoton().getIsoEt()<3)
+  		{
+  			fragTreeISO->Fill();
+  		}
   		fmap.pop();
   	}
   	/*if (!interestHit)
