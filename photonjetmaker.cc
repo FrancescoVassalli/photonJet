@@ -137,6 +137,12 @@ public:
 	bool isJetQuark(){
 		return jet.isJetQuark();
 	}
+	void addEvent(Event e){
+		pythiaEvent=e;
+	}
+	Event getPythiaEvent(){
+		return pythiaEvent;
+	}
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
     }
@@ -147,6 +153,7 @@ private:
 	Photon photon;
 	Jet jet;
 	XjPhi xjphi;
+	Event pythiaEvent;
 	
 };
 
@@ -249,6 +256,7 @@ void makeData(std::string filename, int nEvents){
     				if (tempXj.getphi()>7*TMath::Pi()/8)
     				{
     					tempXj.matchPartons(p1,p2);
+    					tempXj.addEvent(pythiaengine.event);
     					if (tempXj.isDirect())
     					{
     						dmap.push(tempXj);
@@ -321,6 +329,12 @@ void makeData(std::string filename, int nEvents){
   	directTree->Branch("jetquark",&jetquark);
   	fragTreeISO->Branch("jetquark",&jetquark);
   	directTreeISO->Branch("jetquark",&jetquark);
+
+  	Event tempEvent;
+  	fragTree->Branch("FullEvent",&tempEvent);
+  	directTree->Branch("FullEvent",&tempEvent);
+  	fragTreeISO->Branch("FullEvent",&tempEvent);
+  	directTreeISO->Branch("FullEvent",&tempEvent);
   	//cout<<ss.str();
   	//cout<<"Map:"<<finalGammaCount<<endl;
   	//interest<<interestC;
@@ -338,6 +352,7 @@ void makeData(std::string filename, int nEvents){
   		pTtemp=dmap.front().getPhoton().getpT().value;
   		phitemp=dmap.front().getphi().value;
   		jetquark=dmap.front().isJetQuark();
+  		tempEvent=dmap.front().getPythiaEvent();
   		//monPhitemp=-2*TMath::Pi();
   		directTree->Fill();
   		if (dmap.front().getPhoton().getIsoEt()<3)
@@ -350,6 +365,7 @@ void makeData(std::string filename, int nEvents){
   		xjtemp=fmap.front().getXj().value;
   		pTtemp=fmap.front().getPhoton().getpT().value;
   		phitemp=fmap.front().getphi().value;
+  		tempEvent=fmap.front().getPythiaEvent();
   		jetquark=fmap.front().isJetQuark();
   		//monPhitemp=-2*TMath::Pi();
   		fragTree->Fill();

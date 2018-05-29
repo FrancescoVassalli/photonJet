@@ -102,10 +102,10 @@ void plotMonoJets(TChain* gamma_tree){
 
 void xjgpT(TChain* dirc, TChain *frag){
 	TCanvas *tc = new TCanvas();
-	tc->Divide(2,1);
+	//tc->Divide(2,1);
 	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
-	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
-	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
+	TH2F *p_dirc = new TH2F("plot1","",20,10,22,16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,10,22,16,0,2.6); //can make mondular hist names 
 	dirc->Draw("xj:gpT>>plot1");
 	frag->Draw("xj:gpT>>plot2");
 	axisTitles(p_dirc,"#gammapT","Xj");
@@ -114,14 +114,14 @@ void xjgpT(TChain* dirc, TChain *frag){
 	axisTitles(p_frag,"#gammapT","Xj");
 	axisTitleSize(p_frag,.07);
 	axisTitleOffset(p_frag,1);
-	p_dirc->Scale(1/p_dirc->Integral());
-	p_frag->Scale(1/p_frag->Integral());
+	p_dirc->Scale(1/p_dirc->Integral(),"width");
+	p_frag->Scale(1/p_frag->Integral(),"width");
 
 	//gPad->SetLogz(); //this looks bad so getting more stats
 	tc->cd(1);
-	p_frag->Draw("lego2");
-	tc->cd(2);
-	p_dirc->Draw("lego2");
+	p_frag->Draw("colz");
+	//tc->cd(2);
+	//p_dirc->Draw("lego2");
 }
 
 
@@ -139,7 +139,8 @@ void XjGammaPhiPlotter(){
 		frag->Add(temp.c_str());
 	}
 	//plotXjPhi(dirc,frag);
-	plot1D(dirc,frag);
+	//plot1D(dirc,frag);
+	xjgpT(dirc,frag);
 	//plot4Bars(dirc,frag);
 	//plotFlavpT(dirc,frag);
 	//plotMonoJets(data);
