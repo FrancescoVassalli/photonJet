@@ -9,7 +9,47 @@ using namespace std;
 #include "TMath.h"
 #include "Utils.C"
 
+float deltaPhi(Photon p, Jet j);
+float deltaR(Parton,Jet);
 
+class DiJet
+{
+public:
+	DiJet(Jet j1, Jet j2){
+		leading = bigger(j1,j2);
+		subleading=smaller(j1,j2);
+		
+	}
+	DiJet(double pt1, double phi1, double pt2,double phi2){
+		if (pt1>pt2)
+		{
+			leading=Jet(pt1,phi1,0,0);
+			subleading=Jet(pt2,phi2,0,0);
+		}
+		else{
+			subleading=Jet(pt1,phi1,0,0);
+			leading=Jet(pt2,phi2,0,0);
+		}
+		makeXjPhi();
+	}
+	DiJet(){}
+
+	~DiJet(){}
+	Jet getleading(){
+		return leading;
+	}
+	Jet getsubleading(){
+		return subleading;
+	}
+private:
+	void makeXjPhi(){
+		xjphi=XjPhi(leading,subleading);
+	}
+	Jet leading;
+	Jet subleading;
+	XjPhi xjphi;
+	
+};
 
 class PhotonJet
 {
@@ -133,8 +173,9 @@ void makeData(std::string filename, int nEvents){
 
   	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1);
   	int total=0;
-  	int inside=0;
-  	int insideLowEng
+  	int etaCut=0;
+  	int eTCut=0;
+  	int seperated=0;
   	PhotonJet tempXj;
 
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
@@ -149,26 +190,47 @@ void makeData(std::string filename, int nEvents){
     		if (quickPhotonCheck(pythiaengine.event[i]))
     		{
     			total++;
+    			if (TMath::Abs(pythiaengine.event[i].eta())<1.1)
+    			{
+    				etaCut++;
+    			}
     			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),EventToQueue(pythiaengine.event));
     			antikT->analyze(pythiaengine.event);
     			if(antikT->sizeJet()>1){
-    				inside++;
+    				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),positivePhi(antikT->y(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),positivePhi(antikT->y(0))));
     				if (myPhoton.getIsoEt()<3)
     				{
-    					insideLowEng++;
+    					eTCut++;
+    				}
+    				if (tempXj.getphi()>7*TMath::Pi()/8)
+    				{
+    					seperated++;
     				}
     			}
     		}
     	}
     }
-    cout<<"Total:"<<total<<" Inside:"<<inside<<" Inside and LowEt:"<<insideLowEng<<endl;
+    cout<<"Total:"<<total<<" eta:"<<etaCut<<"et:"<<eTCut<<" Seperated:"<<seperated<<endl;
 
   }
 
 int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
-	int nEvents = 10000;
+	int nEvents = 1000000;
 	makeData(fileOut,nEvents);
 	return 0;
+}
+
+
+float deltaPhi(Photon p, Jet j){
+	Scalar r= Scalar(TMath::Abs((p.getphi()-j.getphi()).value));
+	if (r>TMath::Pi())
+	{
+		r= r*(-1)+2*TMath::Pi();
+	}
+	return r.value;
+}
+inline float deltaR(Parton p, Jet j){
+	return TMath::Power(TMath::Power(TMath::Abs(p.getphi()-j.getphi().value),2)+TMath::Power(TMath::Abs(p.gety()-j.gety().value),2),.5);
 }
