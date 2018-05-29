@@ -182,7 +182,8 @@ inline bool quickPhotonCheck(Particle p){
 
 void makeData(std::string filename, int nEvents){
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
-  	TTree* t=new TTree("tree100","events");
+  	TTree* directTree=new TTree("tree100","direct");
+  	TTree* fragTree = new TTree("tree200","frag");
   	/*pythia set up*/
   	Pythia pythiaengine;
   	pythiaengine.readString("Beams:eCM = 200.");
@@ -199,8 +200,9 @@ void makeData(std::string filename, int nEvents){
   	int finalGammaCount=0;
   	stringstream ss;
   	stringstream interest;
-  	queue<PhotonJet> map;
-  	queue<float> monoJetEventPhis;
+  	queue<PhotonJet> dmap;
+  	queue<PhotonJet> fmap;
+  	//queue<float> monoJetEventPhis;
   	PhotonJet tempXj;
   	/* generation loop*/
   	string nullInterest="Interest=0";
@@ -233,16 +235,23 @@ void makeData(std::string filename, int nEvents){
     				if (tempXj.getphi()>7*TMath::Pi()/8)
     				{
     					tempXj.matchPartons(p1,p2);
-    					map.push(tempXj);
+    					if (tempXj.isDirect())
+    					{
+    						dmap.push(tempXj);
+    					}
+    					else{
+    						fmap.push(tempXj);
+    					}
+    					
     				}//do I want an else?
     			}
-    			else{
+    			/*else{ // to handle monojet 
     				tempXj=PhotonJet(myPhoton);
     				monoJetEventPhis.push(myPhoton.getphi().value);
     				map.push(tempXj);
-    			}
+    			}*/
     			//this if is an error check process to see which events the XjPhi is screwing up
-    			if (tempXj.getphi()<7*TMath::Pi()/8)
+    			/*if (tempXj.getphi()<7*TMath::Pi()/8)
     			{
     				interestC++;
     				if (!interestHit)
@@ -263,7 +272,7 @@ void makeData(std::string filename, int nEvents){
     			ss<<"Photon phi:"<<pythiaengine.event[i].phi()<<" Jet1 phi:"<<antikT->phi(0)<<" Jet2 phi:"<<antikT->phi(1)<<"\n";
     			ss<<"Photon pT:"<<pythiaengine.event[i].pT()<<" Jet1 pT:"<<antikT->pT(0)<<" Jet2 pT:"<<antikT->pT(1)<<"\n";
     			//create a map of XjPhi and output that data to TFile or txt or something 
-     			
+     			*/
     		}
     	}
     	/*
@@ -277,65 +286,58 @@ void makeData(std::string filename, int nEvents){
     	}*/
   	}
   	//data out 
-  	float xjdtemp;
-  	float xjftemp;
-  	float phitemp,monPhitemp;
-  	t->Branch("xjd",&xjdtemp);
-  	t->Branch("xjf",&xjftemp);
-  	t->Branch("phi",&phitemp);
-  	t->Branch("monPhi",&monPhitemp);
-  	bool directTemp,jetquark;
-  	t->Branch("direct", &directTemp);
-  	t->Branch("jetquark",&jetquark);
-  	cout<<ss.str();
-  	cout<<"Map:"<<finalGammaCount<<endl;
-  	interest<<interestC;
-  	int counter=0;
-  	while(!monoJetEventPhis.empty()){
+  	float xjtemp;
+  	float phitemp,monPhitemp,pTtemp;
+  	directTree->Branch("xj",&xjtemp);
+  	fragTree->Branch("xj",&xjtemp);
+  	directTree->Branch("phi",&phitemp);
+  	fragTree->Branch("phi",&phitemp);
+  	fragTree->Branch("gpT",&pTtemp);
+  	directTree->Branch("gpT",&pTtemp);
+
+  	//t->Branch("monPhi",&monPhitemp);
+  	bool jetquark;
+  	fragTree->Branch("jetquark",&jetquark);
+  	directTree->Branch("jetquark",&jetquark);
+  	//cout<<ss.str();
+  	//cout<<"Map:"<<finalGammaCount<<endl;
+  	//interest<<interestC;
+  	//int counter=0;
+  	/*while(!monoJetEventPhis.empty()){
   		phitemp=map.front().getphi().value;
-  		directTemp=map.front().isDirect();
-  		if (directTemp)
-  		{
-  			xjdtemp=map.front().getXj().value;
-  			xjftemp=-1;
-  		}
-  		else{
-  			xjftemp=map.front().getXj().value;
-  			xjdtemp=-1;
-  		}
   		jetquark=map.front().isJetQuark();
   		monPhitemp=monoJetEventPhis.front();
   		monoJetEventPhis.pop();
   		t->Fill();
   		map.pop();
+  	}*/
+  	while(!dmap.empty()){
+  		xjtemp=dmap.front().getXj().value;
+  		pTtemp=dmap.front().getPhoton().getpT().value;
+  		phitemp=dmap.front().getphi().value;
+  		jetquark=dmap.front().isJetQuark();
+  		//monPhitemp=-2*TMath::Pi();
+  		directTree->Fill();
+  		dmap.pop();
   	}
-  	while(!map.empty()){
-  		/*cout<<map.front();*/
-  		phitemp=map.front().getphi().value;
-  		directTemp=map.front().isDirect();
-  		if (directTemp)
-  		{
-  			xjdtemp=map.front().getXj().value;
-  			xjftemp=-1;
-  		}
-  		else{
-  			xjftemp=map.front().getXj().value;
-  			xjdtemp=-1;
-  		}
-  		jetquark=map.front().isJetQuark();
-  		monPhitemp=-2*TMath::Pi();
-  		t->Fill();
-  		//out the file 
-  		map.pop();
+  	while(!fmap.empty()){
+  		xjtemp=fmap.front().getXj().value;
+  		pTtemp=fmap.front().getPhoton().getpT().value;
+  		phitemp=fmap.front().getphi().value;
+  		jetquark=fmap.front().isJetQuark();
+  		//monPhitemp=-2*TMath::Pi();
+  		fragTree->Fill();
+  		fmap.pop();
   	}
-  	if (!interestHit)
+  	/*if (!interestHit)
   	{
   		cout<<nullInterest;
   	}
   	else{
   		cout<<interest.str();
-  	}
-  	t->Write();
+  	}*/
+  	directTree->Write();
+  	fragTree->Write();
   	f->Write();
   	f->Close();
 }

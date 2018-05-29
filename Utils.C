@@ -342,7 +342,7 @@ public:
 		parton=p;
 	}
 	bool isJetQuark(){
-		return parton.isQuark();
+		return parton.getQuark();
 	}
 	int getmult(){
 		return mult;
