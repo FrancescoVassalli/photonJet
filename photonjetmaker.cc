@@ -418,11 +418,19 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	fragTreeISO->Branch("jetquark",&jetquark);
   	directTreeISO->Branch("jetquark",&jetquark);
 
-	TTree *tempEvent= new TTree("event","event");
-  	interestXj->Branch("FullEvent",tempEvent);
   	int position;
   	interestXj->Branch("photonPosition",&position);
   	interestXj->Branch("xj",&xjtemp);
+  	interestXj->Branch("Particles",&particle);
+  	interestXj->Branch("Status",&status);
+  	interestXj->Branch("ID",&id);
+  	interestXj->Branch("pT",&pT);
+  	interestXj->Branch("eta",&eta);
+  	interestXj->Branch("phi",&phi);
+  	interestXj->Branch("mother1",&mother1);
+  	interestXj->Branch("mother2",&mother2);
+  	interestXj->Branch("daughter1",&daughter1);
+  	interestXj->Branch("daughter2",&daughter2);
   	//cout<<"CheckSUM:"<<pushcount;
   	while(!eventQ.empty()){
   		fillTreebyEvent(tempEvent,eventQ.front().e);
