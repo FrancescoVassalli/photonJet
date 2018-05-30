@@ -20,6 +20,54 @@ using namespace std;
 
 //float** qXjPhiTo2DArray(queue<XjPhi> in); //in utils for now
 
+	/*
+	TTree *tempEvent= new TTree("event","event");
+  	tempEvent->Branch("Particles",&Particles);
+  	tempEvent->Branch("photonType",&photonType);
+  	tempEvent->Branch("Status",Status,"Status[Particles]/I");
+  	tempEvent->Branch("ID",ID,"ID[Particles]/I");
+  	tempEvent->Branch("pT",pT,"pT[Particles]/F");
+  	tempEvent->Branch("eta",eta,"eta[Particles]/F");
+  	tempEvent->Branch("phi",phi,"phi[Particles]/F");
+  	tempEvent->Branch("Et",Et,"Et[Particles]/F");
+  	tempEvent->Branch("mother1", mother1,"mother1[Particles]/F");
+  	tempEvent->Branch("mother2", mother2,"mother2[Particles]/F");
+  	tempEvent->Branch("daughter1", daughter1,"daughter1[Particles]/F");
+  	tempEvent->Branch("daughter2", daughter2,"daughter2[Particles]/F");
+  	*/
+
+ class myEvent
+ {
+ public:
+ 	myEvent(){}
+ 	~myEvent(){}
+ 	myEvent(int particle,bool direct, int status, int id, float pt, float eta, float phi, float mother1, float mother2,float daughter1, float daughter2){
+		this->particle=particle;
+ 		this->direct=direct;
+ 		this->status=status;
+ 		this->id=id;
+ 		this->pt=pt;
+ 		this->eta=eta;
+ 		this->phi=phi;
+ 		this->mother1=mother1;
+ 		this->mother2=mother2;	 
+ 		this->daughter1=daughter1;
+ 		this->daughter2=daughter2;
+ 	}
+ private:
+ 	int particle;
+ 	bool direct;
+ 	int status;
+ 	int id;
+ 	float pt;
+ 	float eta;
+ 	float phi;
+ 	float mother1;
+ 	float mother2; 	 
+ 	float daughter1; 
+ 	float daughter2;
+ };
+
 float deltaPhi(Photon p, Jet j);
 float deltaR(Parton,Jet);
 
@@ -180,7 +228,7 @@ T positivePhi(T in){
 }
 
 inline bool quickPhotonCheck(Particle p){
-	return p.id()==22&&p.isFinal()&&p.pT()>20&&TMath::Abs(p.eta())<1.1;
+	return p.id()==22&&p.isFinal()&&p.pT()>10&&TMath::Abs(p.eta())<1.1;
 }
 
 /* list of "problem" events that I am still getting
@@ -197,6 +245,34 @@ queue<myParticle> EventToQueue(Event e){
 		r.push(temp);
 	}
 	return r;
+}
+void fillTreebyEvent(TTree *tempEvent, Event e){
+	int particle,status,id,mother2,mother1,daughter1,daughter2;
+	float pT,eta,phi;
+  	tempEvent->Branch("Particles",&particle);
+  	tempEvent->Branch("Status",&status);
+  	tempEvent->Branch("ID",&id);
+  	tempEvent->Branch("pT",&pT);
+  	tempEvent->Branch("eta",&eta);
+  	tempEvent->Branch("phi",&phi);
+  	tempEvent->Branch("mother1",&mother1);
+  	tempEvent->Branch("mother2",&mother2);
+  	tempEvent->Branch("daughter1",&daughter1);
+  	tempEvent->Branch("daughter2",&daughter2);
+  	for (long i = 0; i < e.size(); ++i)
+  	{
+  		particle=i;
+  		status = e[i].status();
+  		id = e[i].id();
+  		pT = e[i].pT();
+  		eta = e[i].eta();
+  		phi = e[i].phi();
+  		mother1 = e[i].mother1();
+  		mother2 = e[i].mother2();
+  		daughter1 = e[i].daughter1();
+  		daughter2 = e[i].daughter2();
+  		tempEvent->Fill();
+  	}
 }
 /*
 stringstream eventToStream(Event e){
@@ -217,20 +293,19 @@ stringstream eventToStream(Event e){
 }*/
 
 void makeData(std::string filename, int nEvents){
-	string interestName = filename+".txt";
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* directTree=new TTree("tree100","direct");
   	TTree* fragTree = new TTree("tree200","frag");
   	TTree* fragTreeISO = new TTree("tree300","fragISO");
   	TTree* directTreeISO = new TTree("tree400","directISO");
-  	TTree* interestXj
+  	TTree* interestXj = new TTree("interest","interest");
   	/*pythia set up*/
   	Pythia pythiaengine;
   	pythiaengine.readString("Beams:eCM = 200.");
  	pythiaengine.readString("promptphoton:all = on");
  	pythiaengine.readString("HardQCD:all = on");
- 	pythiaengine.readString("PhaseSpace:pTHatMin = 10.");
+ 	pythiaengine.readString("PhaseSpace:pTHatMin = 20.");
  	pythiaengine.readString("Random::setSeed = on");
   	pythiaengine.readString("Random::seed =0");
   	pythiaengine.init();
@@ -244,28 +319,13 @@ void makeData(std::string filename, int nEvents){
   	//stringstream interest;
   	queue<PhotonJet> dmap;
   	queue<PhotonJet> fmap;
+  	queue<Event> eventQ;
   	//queue<float> monoJetEventPhis;
   	PhotonJet tempXj;
   	/* generation loop*/
   	string nullInterest="Interest=0";
   	bool interestHit=false;
   	int interestC=0;
-
-  	/*
-	TTree *tempEvent= new TTree("event","event");
-  	tempEvent->Branch("Particles",&Particles);
-  	tempEvent->Branch("photonType",&photonType);
-  	tempEvent->Branch("Status",Status,"Status[Particles]/I");
-  	tempEvent->Branch("ID",ID,"ID[Particles]/I");
-  	tempEvent->Branch("pT",pT,"pT[Particles]/F");
-  	tempEvent->Branch("eta",eta,"eta[Particles]/F");
-  	tempEvent->Branch("phi",phi,"phi[Particles]/F");
-  	tempEvent->Branch("Et",Et,"Et[Particles]/F");
-  	tempEvent->Branch("mother1", mother1,"mother1[Particles]/F");
-  	tempEvent->Branch("mother2", mother2,"mother2[Particles]/F");
-  	tempEvent->Branch("daughter1", daughter1,"daughter1[Particles]/F");
-  	tempEvent->Branch("daughter2", daughter2,"daughter2[Particles]/F");
-  	*/
 
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
@@ -276,8 +336,7 @@ void makeData(std::string filename, int nEvents){
     	}
     	/*if(iEvent%300==0) {
   			cout<<"Event N: "<<iEvent<<'\n';
-    	}
-    	/* zero out */
+    	}*/
     	for (int i = 0; i < pythiaengine.event.size(); ++i)
     	{
     		if (quickPhotonCheck(pythiaengine.event[i]))
@@ -303,7 +362,7 @@ void makeData(std::string filename, int nEvents){
     						fmap.push(tempXj);
     						if (tempXj.getXj()>1.5&&tempXj.getXj()<1.7)
     						{
-    							
+    							eventQ.push(pythiaengine.event);
     						}
     					}
     					
@@ -372,10 +431,13 @@ void makeData(std::string filename, int nEvents){
   	fragTreeISO->Branch("jetquark",&jetquark);
   	directTreeISO->Branch("jetquark",&jetquark);
 
-  	/*fragTree->Branch("FullEvent",&tempEvent);
-  	directTree->Branch("FullEvent",&tempEvent);
-  	fragTreeISO->Branch("FullEvent",&tempEvent);
-  	directTreeISO->Branch("FullEvent",&tempEvent);*/
+	TTree *tempEvent= new TTree("event","event");
+  	interestXj->Branch("FullEvent",&tempEvent);
+  	while(!eventQ.empty()){
+  		fillTreebyEvent(tempEvent,eventQ.front());
+  		interestXj->Fill();
+  		eventQ.pop();
+  	}
   	//cout<<ss.str();
   	//cout<<"Map:"<<finalGammaCount<<endl;
   	//interest<<interestC;
@@ -432,7 +494,7 @@ void makeData(std::string filename, int nEvents){
 int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
-	int nEvents = 300000;
+	int nEvents = 10000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
