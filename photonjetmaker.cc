@@ -225,8 +225,6 @@ void makeData(std::string filename, int nEvents){
   	TTree* fragTreeISO = new TTree("tree300","fragISO");
   	TTree* directTreeISO = new TTree("tree400","directISO");
   	TTree* interestXj
-  	std::ofstream ofs;
-  	ofs.open(interestName.c_str(),ofstream::out);
   	/*pythia set up*/
   	Pythia pythiaengine;
   	pythiaengine.readString("Beams:eCM = 200.");
@@ -244,7 +242,6 @@ void makeData(std::string filename, int nEvents){
   	int finalGammaCount=0;
   	//stringstream ss;
   	//stringstream interest;
-  	stringstream xjInterest;
   	queue<PhotonJet> dmap;
   	queue<PhotonJet> fmap;
   	//queue<float> monoJetEventPhis;
@@ -306,7 +303,7 @@ void makeData(std::string filename, int nEvents){
     						fmap.push(tempXj);
     						if (tempXj.getXj()>1.5&&tempXj.getXj()<1.7)
     						{
-    							xjInterest<<eventToStream(pythiaengine.event).str();
+    							
     						}
     					}
     					
@@ -426,8 +423,6 @@ void makeData(std::string filename, int nEvents){
   	else{
   		cout<<interest.str();
   	}*/
-  	ofs<<xjInterest.rdbuf()<<std::endl;
-  	ofs.close();
   	directTree->Write();
   	fragTree->Write();
   	f->Write();
