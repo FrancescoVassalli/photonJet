@@ -71,6 +71,7 @@ using namespace std;
 float deltaPhi(Photon p, Jet j);
 float deltaR(Parton,Jet);
 void fillTreebyEvent(TTree *tempEvent, Event e);
+void fillTreebyEvent(vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2,Event e);
 
 template<class T>
 void swapPointer(T* a, T* b){
@@ -212,6 +213,8 @@ struct MyPair
 	PhotonJet pj;
 };
 
+
+
 //inclusive
 queue<Jet> getSignificantJet(SlowJet* antikT, float minGeV, float rad){
 	queue<Jet> r;
@@ -289,7 +292,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	pTHat = "PhaseSpace:pTHatMin = "+pTHat+".";
   	pythiaengine.readString(pTHat);
   	pythiaengine.init();
-
+  	int good=0;
   	/* Tbranching  */
   	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1); // what should be my minimum jet pT
   	 // are the monojets low pT photons with match 
@@ -333,6 +336,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),positivePhi(antikT->y(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),positivePhi(antikT->y(0))));
     				if (tempXj.getphi()>7*TMath::Pi()/8)
     				{
+    					good++;
     					tempXj.matchPartons(p1,p2);
     					tempXj.addEvent(pythiaengine.event);
     					if (tempXj.isDirect())
@@ -419,9 +423,17 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	directTreeISO->Branch("jetquark",&jetquark);
 
   	int position;
+  	vector<int> *status= new std::vector<int> ();
+  	vector<int> *id= new std::vector<int> ();
+  	vector<float> *pT= new std::vector<float> ();
+  	vector<float> *eta= new std::vector<float> ();
+  	vector<float> *phi= new std::vector<float> ();
+  	vector<int> *mother1= new std::vector<int> ();
+  	vector<int> *mother2= new std::vector<int> ();
+  	vector<int> *daughter1= new std::vector<int> ();
+  	vector<int> *daughter2= new std::vector<int> ();
   	interestXj->Branch("photonPosition",&position);
   	interestXj->Branch("xj",&xjtemp);
-  	interestXj->Branch("Particles",&particle);
   	interestXj->Branch("Status",&status);
   	interestXj->Branch("ID",&id);
   	interestXj->Branch("pT",&pT);
@@ -431,16 +443,37 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	interestXj->Branch("mother2",&mother2);
   	interestXj->Branch("daughter1",&daughter1);
   	interestXj->Branch("daughter2",&daughter2);
+
+  	float jeteta;
+  	float jetphi;
+  	float isoEt;
+  	interestXj->Branch("jeteta",&jeteta);
+  	interestXj->Branch("jetphi",&jetphi);
+  	interestXj->Branch("isoEt",&isoEt);
+  	interestXj->Branch("direct", &jetquark);
   	//cout<<"CheckSUM:"<<pushcount;
   	while(!eventQ.empty()){
-  		fillTreebyEvent(tempEvent,eventQ.front().e);
+  		status->clear();
+  		id->clear();
+  		pT->clear();
+  		eta ->clear();
+  		phi ->clear();
+  		mother1->clear();
+  		mother2->clear();
+  		daughter1->clear();
+  		daughter2->clear();
+  		fillTreebyEvent(status,id,pT,eta,phi,mother1,mother2,daughter1,daughter2,eventQ.front().e);
   		xjtemp=eventQ.front().pj.getXj().value;
   		position=eventQ.front().pj.getPhoton().getPosition();
+  		jeteta=eventQ.front().pj.getJet().gety().value;
+  		jetphi=eventQ.front().pj.getJet().getphi().value;
+  		isoEt=eventQ.front().pj.getPhoton().getIsoEt();
   		interestXj->Fill();
   		eventQ.pop();
   		//pushcount--;
   	}
   	cout<<"="<<pushcount<<std::endl;
+  	cout<<"total"<<good<<std::endl;
   	//cout<<ss.str();
   	//cout<<"Map:"<<finalGammaCount<<endl;
   	//interest<<interestC;
@@ -560,4 +593,34 @@ void fillTreebyEvent(TTree *tempEvent, Event e){
   		daughter2 = e[i].daughter2();
   		tempEvent->Fill();
   	}
+}
+void fillTreebyEvent(queue<int> status,queue<int> id,queue<float> pT,queue<float> eta,queue<float> phi,queue<int> mother1,queue<int> mother2,queue<int> daughter1,queue<int> daughter2,Event e){
+	for (int i = 0; i < e.size(); ++i)
+	{
+		status.push(e[i].status());
+  		id.push(e[i].id());
+  		pT.push(e[i].pT());
+  		eta.push(e[i].eta());
+  		phi.push(e[i].phi());
+  		mother1.push(e[i].mother1());
+  		mother2.push(e[i].mother2());
+  		daughter1.push(e[i].daughter1());
+  		daughter2.push(e[i].daughter2());
+	}
+
+}
+
+void fillTreebyEvent(vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2,Event e){
+	for (int i = 0; i < e.size(); ++i)
+	{
+		status->push_back(e[i].status());
+  		id->push_back(e[i].id());
+  		pT->push_back(e[i].pT());
+  		eta->push_back(e[i].eta());
+  		phi->push_back(e[i].phi());
+  		mother1->push_back(e[i].mother1());
+  		mother2->push_back(e[i].mother2());
+  		daughter1->push_back(e[i].daughter1());
+  		daughter2->push_back(e[i].daughter2());
+	}
 }
