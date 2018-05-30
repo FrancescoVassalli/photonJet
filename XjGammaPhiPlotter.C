@@ -75,8 +75,8 @@ void plot1D(TChain* dirc, TChain *frag){
 	/*make the plot nice*/
 	dirc->Draw("xj>>plota");
 	frag->Draw("xj>>plotb");
-	//plot->Scale(1/plot->Integral(),"width");
-	//other->Scale(1/other->Integral(),"width");
+	plot->Scale(1/plot->Integral(),"width");
+	other->Scale(1/other->Integral(),"width");
 	TLegend *tl =new TLegend(.1,.6,.4,.9);
 	tl->AddEntry(plot,"direct","p");
 	tl->AddEntry(other,"frag","p");
@@ -129,8 +129,8 @@ void XjGammaPhiPlotter(){
 	string filename = "Xj2Phi";
 	string extension = ".root";
 	int filecount=70;
-	TChain *dirc = new TChain("tree100"); //use tree200 for frag and tree100 for direct
-	TChain *frag = new TChain("tree200");
+	TChain *dirc = new TChain("tree400"); //use tree200 for frag and tree100 for direct
+	TChain *frag = new TChain("tree300");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
 	{

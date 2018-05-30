@@ -13,6 +13,13 @@ T quadrature(T* a, int SIZE){
 	return TMath::Sqrt(r);
 }
 
+template<class T>
+void clear( std::queue<T> &q )
+{
+   std::queue<T> empty;
+   std::swap( q, empty );
+}
+
 float deltaPhi(float i1, float i2);
 
 
@@ -234,17 +241,17 @@ class myParticle
 public:
 	myParticle(){}
 	~myParticle(){}
-	myParticle(int id, float pT, float phi, float y){
+	myParticle(int id, float eT, float phi, float y){
 		this->id=id;
-		this->pT=pT;
+		this->eT=eT;
 		this->phi=phi;
 		this->y=y;
 	}
 	int getId(){
 		return id;
 	}
-	float getpT(){
-		return pT;
+	float geteT(){
+		return eT;
 	}
 	float getphi(){
 		return phi;
@@ -255,7 +262,7 @@ public:
 
 private:
 	int id;
-	float pT;
+	float eT;
 	float phi;
 	float y;
 };
@@ -350,7 +357,7 @@ public:
 		while(!all.empty()){
 			if (inCone(all.front().gety(),all.front().getphi()))
 			{
-				isoEt+=all.front().getpT();
+				isoEt+=all.front().geteT();
 			}
 			all.pop();
 		}

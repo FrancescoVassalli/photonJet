@@ -188,12 +188,12 @@ public:
 	bool isJetQuark(){
 		return jet.isJetQuark();
 	}
-	void addEvent(Event e){
+	/*void addEvent(Event e){
 		pythiaEvent=e;
-	}
-	Event getPythiaEvent(){
+	}*/
+	/*Event getPythiaEvent(){
 		return pythiaEvent;
-	}
+	}*/
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
     }
@@ -204,7 +204,7 @@ private:
 	Photon photon;
 	Jet jet;
 	XjPhi xjphi;
-	Event pythiaEvent;
+	//Event pythiaEvent;
 	
 };
 struct MyPair
@@ -250,7 +250,7 @@ queue<myParticle> EventToQueue(Event e){
 	queue<myParticle> r;
 	for (int i = 0; i < e.size(); ++i)
 	{
-		temp = myParticle(e[i].id(),e[i].pT(),e[i].phi(),e[i].y());
+		temp = myParticle(e[i].id(),e[i].eT(),e[i].phi(),e[i].y());
 		r.push(temp);
 	}
 	return r;
@@ -277,10 +277,10 @@ stringstream eventToStream(Event e){
 void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
-  	TTree* directTree=new TTree("tree100","direct");
+  	/*TTree* directTree=new TTree("tree100","direct");
   	TTree* fragTree = new TTree("tree200","frag");
   	TTree* fragTreeISO = new TTree("tree300","fragISO");
-  	TTree* directTreeISO = new TTree("tree400","directISO");
+  	TTree* directTreeISO = new TTree("tree400","directISO");*/
   	TTree* interestXj = new TTree("interest","interest");
   	/*pythia set up*/
   	Pythia pythiaengine;
@@ -300,15 +300,15 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	int finalGammaCount=0;
   	//stringstream ss;
   	//stringstream interest;
-  	queue<PhotonJet> dmap;
-  	queue<PhotonJet> fmap;
+  	//queue<PhotonJet> dmap;
+  	//queue<PhotonJet> fmap;
   	queue<MyPair> eventQ;
   	//queue<float> monoJetEventPhis;
   	PhotonJet tempXj;
   	/* generation loop*/
-  	string nullInterest="Interest=0";
-  	bool interestHit=false;
-  	int interestC=0;
+  	//string nullInterest="Interest=0";
+  	//bool interestHit=false;
+  	//int interestC=0;
   	int pushcount=0;
 
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
@@ -326,6 +326,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut))
     		{
     			finalGammaCount++;
+    			//these partons are suspect 
     			Parton p1 = Parton(pythiaengine.event[5].id(),positivePhi(pythiaengine.event[5].phi()),positivePhi(pythiaengine.event[5].eta()),pythiaengine.event[5].px(),pythiaengine.event[5].py());
     			Parton p2 = Parton(pythiaengine.event[6].id(),positivePhi(pythiaengine.event[6].phi()),positivePhi(pythiaengine.event[6].eta()),pythiaengine.event[6].px(),pythiaengine.event[6].py());
     			Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()),EventToQueue(pythiaengine.event));
@@ -333,13 +334,13 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     			//ss<<finalGammaCount<<'\n';
     			if(antikT->sizeJet()>1){
     				//biasing by only looking at first 2?
-    				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),positivePhi(antikT->y(1))),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),positivePhi(antikT->y(0))));
+    				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),antikT->y(1)),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),antikT->y(0)));
     				if (tempXj.getphi()>7*TMath::Pi()/8)
     				{
     					good++;
-    					tempXj.matchPartons(p1,p2);
-    					tempXj.addEvent(pythiaengine.event);
-    					if (tempXj.isDirect())
+    					tempXj.matchPartons(p1,p2); // do I do anythign with these
+    					//tempXj.addEvent(pythiaengine.event); // photon and photonJet have the event?
+    					/*if (tempXj.isDirect())
     					{
     						dmap.push(tempXj);
     					}
@@ -347,13 +348,13 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     						fmap.push(tempXj);
     						if (tempXj.getXj()>1.5&&tempXj.getXj()<1.7)
     						{
-    							MyPair ptemp;
-    							ptemp.e=pythiaengine.event;
-    							ptemp.pj=tempXj;
-    							eventQ.push(ptemp);
     							pushcount++;
     						}
-    					}
+    					}*/
+    					MyPair ptemp;
+    					ptemp.e=pythiaengine.event;
+    					ptemp.pj=tempXj;
+    					eventQ.push(ptemp);
     					
     				}//do I want an else?
 
@@ -400,9 +401,9 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     	}*/
   	}
   	//data out 
-  	float xjtemp;
-  	float phitemp,monPhitemp,pTtemp;
-  	directTree->Branch("xj",&xjtemp);
+  	
+  	//float phitemp,monPhitemp,pTtemp;
+  	/*directTree->Branch("xj",&xjtemp);
   	fragTree->Branch("xj",&xjtemp);
   	directTree->Branch("phi",&phitemp);
   	fragTree->Branch("phi",&phitemp);
@@ -413,16 +414,18 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	directTreeISO->Branch("phi",&phitemp);
   	fragTreeISO->Branch("phi",&phitemp);
   	fragTreeISO->Branch("gpT",&pTtemp);
-  	directTreeISO->Branch("gpT",&pTtemp);
+  	directTreeISO->Branch("gpT",&pTtemp);*/
 
   	//t->Branch("monPhi",&monPhitemp);
-  	bool jetquark;
-  	fragTree->Branch("jetquark",&jetquark);
+
+  	/*fragTree->Branch("jetquark",&jetquark);
   	directTree->Branch("jetquark",&jetquark);
   	fragTreeISO->Branch("jetquark",&jetquark);
-  	directTreeISO->Branch("jetquark",&jetquark);
+  	directTreeISO->Branch("jetquark",&jetquark);*/
 
   	int position;
+  	bool jetquark;
+  	float xjtemp;
   	vector<int> *status= new std::vector<int> ();
   	vector<int> *id= new std::vector<int> ();
   	vector<float> *pT= new std::vector<float> ();
@@ -468,6 +471,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   		jeteta=eventQ.front().pj.getJet().gety().value;
   		jetphi=eventQ.front().pj.getJet().getphi().value;
   		isoEt=eventQ.front().pj.getPhoton().getIsoEt();
+  		jetquark=eventQ.front().pj.isJetQuark();
   		interestXj->Fill();
   		eventQ.pop();
   		//pushcount--;
@@ -486,7 +490,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   		t->Fill();
   		map.pop();
   	}*/
-  	while(!dmap.empty()){
+  	/*while(!dmap.empty()){
   		xjtemp=dmap.front().getXj().value;
   		pTtemp=dmap.front().getPhoton().getpT().value;
   		phitemp=dmap.front().getphi().value;
@@ -513,7 +517,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   			fragTreeISO->Fill();
   		}
   		fmap.pop();
-  	}
+  	}*/
   	/*if (!interestHit)
   	{
   		cout<<nullInterest;
@@ -521,8 +525,8 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	else{
   		cout<<interest.str();
   	}*/
-  	directTree->Write();
-  	fragTree->Write();
+  	//directTree->Write();
+  	//fragTree->Write();
   	interestXj->Write();
   	f->Write();
   	f->Close();
