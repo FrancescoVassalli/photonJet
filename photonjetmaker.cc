@@ -179,7 +179,7 @@ T positivePhi(T in){
 }
 
 inline bool quickPhotonCheck(Particle p){
-	return p.id()==22&&p.isFinal()&&p.pT()>10&&TMath::Abs(p.eta())<1.1;
+	return p.id()==22&&p.isFinal()&&p.pT()>20&&TMath::Abs(p.eta())<1.1;
 }
 
 /* list of "problem" events that I am still getting
@@ -198,7 +198,26 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
+stringstream eventToStream(Event e){
+	stringstream ss;
+	ss<<"_______________________________________________________________________________________________________________________"<<'\n';
+    ss<<"||                                   Events that contain isophoton                                                   ||"<<'\n';
+    ss<<"-----------------------------------------------------------------------------------------------------------------------"<<'\n';
+    ss<<"|| Particle  |  Status   |   ID   |   pT  |   eta   |   phi   |  mother 1  |  mother 2  |  daughter 1  |  daughter 2 ||"<<'\n';
+    ss<<"-----------------------------------------------------------------------------------------------------------------------"<<'\n';
+    for(int i = 0; i < e.size(); i++)
+    {
+     	ss<<"||   "<<i<<"    |    "<<e[i].status()<<"    |    "<<e[i].id()<<"    |    "<<e[i].pT()<<"    |    "<< e[i].eta()<<"    |    "
+     	<<e[i].phi()<<"    |    "<< e[i].mother1()<<"    |    "<< e[i].mother2()<<"    |    "<<e[i].daughter1()<<"    |    "<<e[i].daughter2()<<"    |    "<<'\n';
+    }
+    ss<<"||_____________________________________________________________________________________________________________________" <<'\n';
+    ss<<'\n';
+    return ss;
+}
+
 void makeData(std::string filename, int nEvents){
+	string interestName = filename+".txt";
+	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* directTree=new TTree("tree100","direct");
   	TTree* fragTree = new TTree("tree200","frag");
@@ -219,8 +238,9 @@ void makeData(std::string filename, int nEvents){
   	 // are the monojets low pT photons with match 
   	//Jet *temp =NULL;
   	int finalGammaCount=0;
-  	stringstream ss;
-  	stringstream interest;
+  	//stringstream ss;
+  	//stringstream interest;
+  	stringstream xjInterest;
   	queue<PhotonJet> dmap;
   	queue<PhotonJet> fmap;
   	//queue<float> monoJetEventPhis;
@@ -229,6 +249,23 @@ void makeData(std::string filename, int nEvents){
   	string nullInterest="Interest=0";
   	bool interestHit=false;
   	int interestC=0;
+
+  	/*
+	TTree *tempEvent= new TTree("event","event");
+  	tempEvent->Branch("Particles",&Particles);
+  	tempEvent->Branch("photonType",&photonType);
+  	tempEvent->Branch("Status",Status,"Status[Particles]/I");
+  	tempEvent->Branch("ID",ID,"ID[Particles]/I");
+  	tempEvent->Branch("pT",pT,"pT[Particles]/F");
+  	tempEvent->Branch("eta",eta,"eta[Particles]/F");
+  	tempEvent->Branch("phi",phi,"phi[Particles]/F");
+  	tempEvent->Branch("Et",Et,"Et[Particles]/F");
+  	tempEvent->Branch("mother1", mother1,"mother1[Particles]/F");
+  	tempEvent->Branch("mother2", mother2,"mother2[Particles]/F");
+  	tempEvent->Branch("daughter1", daughter1,"daughter1[Particles]/F");
+  	tempEvent->Branch("daughter2", daughter2,"daughter2[Particles]/F");
+  	*/
+
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
   		if (!pythiaengine.next()){
@@ -263,6 +300,10 @@ void makeData(std::string filename, int nEvents){
     					}
     					else{
     						fmap.push(tempXj);
+    						if (tempXj.getXj()>1.5&&tempXj.getXj()<1.7)
+    						{
+    							xjInterest<<eventToStream(pythiaengine.event).str();
+    						}
     					}
     					
     				}//do I want an else?
@@ -330,11 +371,10 @@ void makeData(std::string filename, int nEvents){
   	fragTreeISO->Branch("jetquark",&jetquark);
   	directTreeISO->Branch("jetquark",&jetquark);
 
-  	Event tempEvent;
-  	fragTree->Branch("FullEvent",&tempEvent);
+  	/*fragTree->Branch("FullEvent",&tempEvent);
   	directTree->Branch("FullEvent",&tempEvent);
   	fragTreeISO->Branch("FullEvent",&tempEvent);
-  	directTreeISO->Branch("FullEvent",&tempEvent);
+  	directTreeISO->Branch("FullEvent",&tempEvent);*/
   	//cout<<ss.str();
   	//cout<<"Map:"<<finalGammaCount<<endl;
   	//interest<<interestC;
@@ -352,7 +392,7 @@ void makeData(std::string filename, int nEvents){
   		pTtemp=dmap.front().getPhoton().getpT().value;
   		phitemp=dmap.front().getphi().value;
   		jetquark=dmap.front().isJetQuark();
-  		tempEvent=dmap.front().getPythiaEvent();
+  		//tempEvent=dmap.front().getPythiaEvent();
   		//monPhitemp=-2*TMath::Pi();
   		directTree->Fill();
   		if (dmap.front().getPhoton().getIsoEt()<3)
@@ -365,7 +405,7 @@ void makeData(std::string filename, int nEvents){
   		xjtemp=fmap.front().getXj().value;
   		pTtemp=fmap.front().getPhoton().getpT().value;
   		phitemp=fmap.front().getphi().value;
-  		tempEvent=fmap.front().getPythiaEvent();
+  		//tempEvent=fmap.front().getPythiaEvent();
   		jetquark=fmap.front().isJetQuark();
   		//monPhitemp=-2*TMath::Pi();
   		fragTree->Fill();
@@ -382,6 +422,7 @@ void makeData(std::string filename, int nEvents){
   	else{
   		cout<<interest.str();
   	}*/
+  	cout<<xjInterest.str()<<std::endl;
   	directTree->Write();
   	fragTree->Write();
   	f->Write();
@@ -391,7 +432,7 @@ void makeData(std::string filename, int nEvents){
 int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
-	int nEvents = 10000;
+	int nEvents = 30000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
