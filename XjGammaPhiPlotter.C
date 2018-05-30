@@ -104,8 +104,8 @@ void xjgpT(TChain* dirc, TChain *frag){
 	TCanvas *tc = new TCanvas();
 	//tc->Divide(2,1);
 	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
-	TH2F *p_dirc = new TH2F("plot1","",20,10,22,16,0,2.6); //can make mondular hist names 
-	TH2F *p_frag = new TH2F("plot2","",20,10,22,16,0,2.6); //can make mondular hist names 
+	TH2F *p_dirc = new TH2F("plot1","",20,20,30,16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,20,30,16,0,2.6); //can make mondular hist names 
 	dirc->Draw("xj:gpT>>plot1");
 	frag->Draw("xj:gpT>>plot2");
 	axisTitles(p_dirc,"#gammapT","Xj");
@@ -126,9 +126,9 @@ void xjgpT(TChain* dirc, TChain *frag){
 
 
 void XjGammaPhiPlotter(){
-	string filename = "XjPhi";
+	string filename = "Xj2Phi";
 	string extension = ".root";
-	int filecount=139;
+	int filecount=70;
 	TChain *dirc = new TChain("tree100"); //use tree200 for frag and tree100 for direct
 	TChain *frag = new TChain("tree200");
 	string temp;
