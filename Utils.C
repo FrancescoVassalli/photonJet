@@ -303,6 +303,14 @@ public:
 		direct=process;
 		findIsoEt(all);
 	}
+	Photon(int index,double _pT,double _phi, double _eta, bool process, queue<myParticle> all){
+		this->pT = Scalar((float)_pT);
+		this->phi= Scalar((float)_phi);
+		this->eta= Scalar((float)_eta);
+		direct=process;
+		position=index;
+		findIsoEt(all);
+	}
 	Photon(double _pT,double _phi, double _eta,queue<myParticle> all){
 		this->pT = Scalar((float)_pT);
 		this->phi= Scalar((float)_phi);
@@ -334,7 +342,9 @@ public:
 	bool isDirect(){
 		return direct;
 	}
-
+	int getPosition(){
+		return position;
+	}
 	float findIsoEt(queue<myParticle> all){
 		isoEt=0;
 		while(!all.empty()){
@@ -366,6 +376,7 @@ private:
 	float isoEt;
 	Parton parton;
 	float etCone = 0.4;
+	int position;
 	bool inCone(float geta, float gphi)
 	{
 	  if( sqrt(TMath::Power(TMath::Abs(geta-eta.value),2)+TMath::Power(TMath::Abs(gphi-phi.value),2)) < etCone )

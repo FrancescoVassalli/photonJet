@@ -75,8 +75,8 @@ void plot1D(TChain* dirc, TChain *frag){
 	/*make the plot nice*/
 	dirc->Draw("xj>>plota");
 	frag->Draw("xj>>plotb");
-	plot->Scale(1/plot->Integral(),"width");
-	other->Scale(1/other->Integral(),"width");
+	//plot->Scale(1/plot->Integral(),"width");
+	//other->Scale(1/other->Integral(),"width");
 	TLegend *tl =new TLegend(.1,.6,.4,.9);
 	tl->AddEntry(plot,"direct","p");
 	tl->AddEntry(other,"frag","p");
@@ -86,7 +86,7 @@ void plot1D(TChain* dirc, TChain *frag){
 	smallBorders();
 	makeDifferent(other,1);
 	plot->Draw("p");
-	other->Draw("same");
+	other->Draw("same p");
 	tl->Draw();
 }
 
@@ -104,8 +104,8 @@ void xjgpT(TChain* dirc, TChain *frag){
 	TCanvas *tc = new TCanvas();
 	//tc->Divide(2,1);
 	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
-	TH2F *p_dirc = new TH2F("plot1","",20,20,30,16,0,2.6); //can make mondular hist names 
-	TH2F *p_frag = new TH2F("plot2","",20,20,30,16,0,2.6); //can make mondular hist names 
+	TH2F *p_dirc = new TH2F("plot1","",20,20,26,16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,20,26,16,0,2.6); //can make mondular hist names 
 	dirc->Draw("xj:gpT>>plot1");
 	frag->Draw("xj:gpT>>plot2");
 	axisTitles(p_dirc,"#gammapT","Xj");
@@ -114,8 +114,8 @@ void xjgpT(TChain* dirc, TChain *frag){
 	axisTitles(p_frag,"#gammapT","Xj");
 	axisTitleSize(p_frag,.07);
 	axisTitleOffset(p_frag,1);
-	p_dirc->Scale(1/p_dirc->Integral(),"width");
-	p_frag->Scale(1/p_frag->Integral(),"width");
+	p_dirc->Scale(1/p_dirc->Integral());
+	p_frag->Scale(1/p_frag->Integral());
 
 	//gPad->SetLogz(); //this looks bad so getting more stats
 	tc->cd(1);
@@ -139,8 +139,8 @@ void XjGammaPhiPlotter(){
 		frag->Add(temp.c_str());
 	}
 	//plotXjPhi(dirc,frag);
-	//plot1D(dirc,frag);
-	xjgpT(dirc,frag);
+	plot1D(dirc,frag);
+	//xjgpT(dirc,frag);
 	//plot4Bars(dirc,frag);
 	//plotFlavpT(dirc,frag);
 	//plotMonoJets(data);

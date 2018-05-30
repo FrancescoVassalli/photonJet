@@ -70,6 +70,7 @@ using namespace std;
 
 float deltaPhi(Photon p, Jet j);
 float deltaR(Parton,Jet);
+void fillTreebyEvent(TTree *tempEvent, Event e);
 
 template<class T>
 void swapPointer(T* a, T* b){
@@ -205,6 +206,11 @@ private:
 	Event pythiaEvent;
 	
 };
+struct MyPair
+{
+	Event e;
+	PhotonJet pj;
+};
 
 //inclusive
 queue<Jet> getSignificantJet(SlowJet* antikT, float minGeV, float rad){
@@ -227,8 +233,8 @@ T positivePhi(T in){
 	return in;
 }
 
-inline bool quickPhotonCheck(Particle p){
-	return p.id()==22&&p.isFinal()&&p.pT()>10&&TMath::Abs(p.eta())<1.1;
+inline bool quickPhotonCheck(Particle p, int gammaCut){
+	return p.id()==22&&p.isFinal()&&p.pT()>gammaCut&&TMath::Abs(p.eta())<1.1;
 }
 
 /* list of "problem" events that I am still getting
@@ -246,34 +252,7 @@ queue<myParticle> EventToQueue(Event e){
 	}
 	return r;
 }
-void fillTreebyEvent(TTree *tempEvent, Event e){
-	int particle,status,id,mother2,mother1,daughter1,daughter2;
-	float pT,eta,phi;
-  	tempEvent->Branch("Particles",&particle);
-  	tempEvent->Branch("Status",&status);
-  	tempEvent->Branch("ID",&id);
-  	tempEvent->Branch("pT",&pT);
-  	tempEvent->Branch("eta",&eta);
-  	tempEvent->Branch("phi",&phi);
-  	tempEvent->Branch("mother1",&mother1);
-  	tempEvent->Branch("mother2",&mother2);
-  	tempEvent->Branch("daughter1",&daughter1);
-  	tempEvent->Branch("daughter2",&daughter2);
-  	for (long i = 0; i < e.size(); ++i)
-  	{
-  		particle=i;
-  		status = e[i].status();
-  		id = e[i].id();
-  		pT = e[i].pT();
-  		eta = e[i].eta();
-  		phi = e[i].phi();
-  		mother1 = e[i].mother1();
-  		mother2 = e[i].mother2();
-  		daughter1 = e[i].daughter1();
-  		daughter2 = e[i].daughter2();
-  		tempEvent->Fill();
-  	}
-}
+
 /*
 stringstream eventToStream(Event e){
 	stringstream ss;
@@ -292,7 +271,7 @@ stringstream eventToStream(Event e){
     return ss;
 }*/
 
-void makeData(std::string filename, int nEvents){
+void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* directTree=new TTree("tree100","direct");
@@ -305,9 +284,10 @@ void makeData(std::string filename, int nEvents){
   	pythiaengine.readString("Beams:eCM = 200.");
  	pythiaengine.readString("promptphoton:all = on");
  	pythiaengine.readString("HardQCD:all = on");
- 	pythiaengine.readString("PhaseSpace:pTHatMin = 20.");
  	pythiaengine.readString("Random::setSeed = on");
   	pythiaengine.readString("Random::seed =0");
+  	pTHat = "PhaseSpace:pTHatMin = "+pTHat+".";
+  	pythiaengine.readString(pTHat);
   	pythiaengine.init();
 
   	/* Tbranching  */
@@ -319,7 +299,7 @@ void makeData(std::string filename, int nEvents){
   	//stringstream interest;
   	queue<PhotonJet> dmap;
   	queue<PhotonJet> fmap;
-  	queue<Event> eventQ;
+  	queue<MyPair> eventQ;
   	//queue<float> monoJetEventPhis;
   	PhotonJet tempXj;
   	/* generation loop*/
@@ -340,12 +320,12 @@ void makeData(std::string filename, int nEvents){
     	}*/
     	for (int i = 0; i < pythiaengine.event.size(); ++i)
     	{
-    		if (quickPhotonCheck(pythiaengine.event[i]))
+    		if (quickPhotonCheck(pythiaengine.event[i],gammaCut))
     		{
     			finalGammaCount++;
     			Parton p1 = Parton(pythiaengine.event[5].id(),positivePhi(pythiaengine.event[5].phi()),positivePhi(pythiaengine.event[5].eta()),pythiaengine.event[5].px(),pythiaengine.event[5].py());
     			Parton p2 = Parton(pythiaengine.event[6].id(),positivePhi(pythiaengine.event[6].phi()),positivePhi(pythiaengine.event[6].eta()),pythiaengine.event[6].px(),pythiaengine.event[6].py());
-    			Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()),EventToQueue(pythiaengine.event));
+    			Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()),EventToQueue(pythiaengine.event));
     			antikT->analyze(pythiaengine.event);
     			//ss<<finalGammaCount<<'\n';
     			if(antikT->sizeJet()>1){
@@ -363,7 +343,10 @@ void makeData(std::string filename, int nEvents){
     						fmap.push(tempXj);
     						if (tempXj.getXj()>1.5&&tempXj.getXj()<1.7)
     						{
-    							eventQ.push(pythiaengine.event);
+    							MyPair ptemp;
+    							ptemp.e=pythiaengine.event;
+    							ptemp.pj=tempXj;
+    							eventQ.push(ptemp);
     							pushcount++;
     						}
     					}
@@ -436,16 +419,18 @@ void makeData(std::string filename, int nEvents){
   	directTreeISO->Branch("jetquark",&jetquark);
 
 	TTree *tempEvent= new TTree("event","event");
-  	interestXj->Branch("FullEvent",&tempEvent);
-  	cout<<"CheckSUM:"<<pushcount;
+  	interestXj->Branch("FullEvent",tempEvent);
+  	int position;
+  	interestXj->Branch("photonPosition",&position);
+  	interestXj->Branch("xj",&xjtemp);
+  	//cout<<"CheckSUM:"<<pushcount;
   	while(!eventQ.empty()){
-  		/*fillTreebyEvent(tempEvent,eventQ.front());
-  		tempEvent->Write();
+  		fillTreebyEvent(tempEvent,eventQ.front().e);
+  		xjtemp=eventQ.front().pj.getXj().value;
+  		position=eventQ.front().pj.getPhoton().getPosition();
   		interestXj->Fill();
-  		*/
-  		eventQ.front().list();
   		eventQ.pop();
-  		pushcount--;
+  		//pushcount--;
   	}
   	cout<<"="<<pushcount<<std::endl;
   	//cout<<ss.str();
@@ -505,8 +490,10 @@ void makeData(std::string filename, int nEvents){
 int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
+	string pTHat = string(argv[2]);
+	int gammaCut= stoi(string(argv[3]));
 	int nEvents = 30000;
-	makeData(fileOut,nEvents);
+	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
 }
 
@@ -537,3 +524,32 @@ inline float deltaR(Parton p, Jet j){
 	out[1]=o2;
 	return out;
 }*/
+
+void fillTreebyEvent(TTree *tempEvent, Event e){
+	int particle,status,id,mother2,mother1,daughter1,daughter2;
+	float pT,eta,phi;
+  	tempEvent->Branch("Particles",&particle);
+  	tempEvent->Branch("Status",&status);
+  	tempEvent->Branch("ID",&id);
+  	tempEvent->Branch("pT",&pT);
+  	tempEvent->Branch("eta",&eta);
+  	tempEvent->Branch("phi",&phi);
+  	tempEvent->Branch("mother1",&mother1);
+  	tempEvent->Branch("mother2",&mother2);
+  	tempEvent->Branch("daughter1",&daughter1);
+  	tempEvent->Branch("daughter2",&daughter2);
+  	for (long i = 0; i < e.size(); ++i)
+  	{
+  		particle=i;
+  		status = e[i].status();
+  		id = e[i].id();
+  		pT = e[i].pT();
+  		eta = e[i].eta();
+  		phi = e[i].phi();
+  		mother1 = e[i].mother1();
+  		mother2 = e[i].mother2();
+  		daughter1 = e[i].daughter1();
+  		daughter2 = e[i].daughter2();
+  		tempEvent->Fill();
+  	}
+}
