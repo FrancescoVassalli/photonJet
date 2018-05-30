@@ -2,7 +2,7 @@
 	for the generation of photon-jet observables through Pythia pp collisions 
 	by Francesco Vassalli
 */
-
+/* stop trying to make one file do so much.  Make test files */
 #include <sstream>
 #include <queue>
 #include <fstream>
@@ -326,6 +326,7 @@ void makeData(std::string filename, int nEvents){
   	string nullInterest="Interest=0";
   	bool interestHit=false;
   	int interestC=0;
+  	int pushcount=0;
 
   	for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
@@ -363,10 +364,12 @@ void makeData(std::string filename, int nEvents){
     						if (tempXj.getXj()>1.5&&tempXj.getXj()<1.7)
     						{
     							eventQ.push(pythiaengine.event);
+    							pushcount++;
     						}
     					}
     					
     				}//do I want an else?
+
     			}
     			/*else{ // to handle monojet 
     				tempXj=PhotonJet(myPhoton);
@@ -396,6 +399,7 @@ void makeData(std::string filename, int nEvents){
     			ss<<"Photon pT:"<<pythiaengine.event[i].pT()<<" Jet1 pT:"<<antikT->pT(0)<<" Jet2 pT:"<<antikT->pT(1)<<"\n";
     			//create a map of XjPhi and output that data to TFile or txt or something 
      			*/
+     			break;
     		}
     	}
     	/*
@@ -433,11 +437,17 @@ void makeData(std::string filename, int nEvents){
 
 	TTree *tempEvent= new TTree("event","event");
   	interestXj->Branch("FullEvent",&tempEvent);
+  	cout<<"CheckSUM:"<<pushcount;
   	while(!eventQ.empty()){
-  		fillTreebyEvent(tempEvent,eventQ.front());
+  		/*fillTreebyEvent(tempEvent,eventQ.front());
+  		tempEvent->Write();
   		interestXj->Fill();
+  		*/
+  		eventQ.front().list();
   		eventQ.pop();
+  		pushcount--;
   	}
+  	cout<<"="<<pushcount<<std::endl;
   	//cout<<ss.str();
   	//cout<<"Map:"<<finalGammaCount<<endl;
   	//interest<<interestC;
@@ -487,6 +497,7 @@ void makeData(std::string filename, int nEvents){
   	}*/
   	directTree->Write();
   	fragTree->Write();
+  	interestXj->Write();
   	f->Write();
   	f->Close();
 }
@@ -494,7 +505,7 @@ void makeData(std::string filename, int nEvents){
 int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
-	int nEvents = 10000;
+	int nEvents = 30000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
