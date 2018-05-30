@@ -5,6 +5,7 @@
 
 #include <sstream>
 #include <queue>
+#include <fstream>
 #include "Pythia8/Pythia.h"
 using namespace Pythia8;
 using namespace std;
@@ -197,7 +198,7 @@ queue<myParticle> EventToQueue(Event e){
 	}
 	return r;
 }
-
+/*
 stringstream eventToStream(Event e){
 	stringstream ss;
 	ss<<"_______________________________________________________________________________________________________________________"<<'\n';
@@ -213,7 +214,7 @@ stringstream eventToStream(Event e){
     ss<<"||_____________________________________________________________________________________________________________________" <<'\n';
     ss<<'\n';
     return ss;
-}
+}*/
 
 void makeData(std::string filename, int nEvents){
 	string interestName = filename+".txt";
@@ -223,6 +224,9 @@ void makeData(std::string filename, int nEvents){
   	TTree* fragTree = new TTree("tree200","frag");
   	TTree* fragTreeISO = new TTree("tree300","fragISO");
   	TTree* directTreeISO = new TTree("tree400","directISO");
+  	TTree* interestXj
+  	std::ofstream ofs;
+  	ofs.open(interestName.c_str(),ofstream::out);
   	/*pythia set up*/
   	Pythia pythiaengine;
   	pythiaengine.readString("Beams:eCM = 200.");
@@ -422,7 +426,8 @@ void makeData(std::string filename, int nEvents){
   	else{
   		cout<<interest.str();
   	}*/
-  	cout<<xjInterest.str()<<std::endl;
+  	ofs<<xjInterest.rdbuf()<<std::endl;
+  	ofs.close();
   	directTree->Write();
   	fragTree->Write();
   	f->Write();
@@ -432,7 +437,7 @@ void makeData(std::string filename, int nEvents){
 int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
-	int nEvents = 30000;
+	int nEvents = 300000;
 	makeData(fileOut,nEvents);
 	return 0;
 }
