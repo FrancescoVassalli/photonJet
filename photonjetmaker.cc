@@ -7,6 +7,7 @@
 #include <queue>
 #include <fstream>
 #include "Pythia8/Pythia.h"
+//#include "Pythia8Plugins/HepMC2.h" //added plugin for HepMC, think we will need some new library in pythia for this
 using namespace Pythia8;
 using namespace std;
 #include "TFile.h"
@@ -288,15 +289,21 @@ void fillTreebySlowJet(SlowJet* antikT, float R,vector<int>* mult, vector<float>
 }
 
 void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
-	filename+=".root";
-	TFile* f = new TFile(filename.c_str(),"RECREATE");
-  	TTree* interestXj = new TTree("interest","interest");
+	  filename+=".root";
+	  TFile* f = new TFile(filename.c_str(),"RECREATE");
+    TTree* interestXj = new TTree("interest","interest");
   	/*pythia set up*/
-  	Pythia pythiaengine;
-  	pythiaengine.readString("Beams:eCM = 200.");
- 	pythiaengine.readString("promptphoton:all = on");
- 	pythiaengine.readString("HardQCD:all = on");
- 	pythiaengine.readString("Random::setSeed = on");
+
+    /* HepMC stuff
+    HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
+    HepMC::IO_GenEvent ascii_io("put command line input here.dat", std::ios::out); //file where HepMC events will be stored.
+    */
+
+    Pythia pythiaengine;
+    pythiaengine.readString("Beams:eCM = 200.");
+  	pythiaengine.readString("promptphoton:all = on");
+ 	  pythiaengine.readString("HardQCD:all = on");
+  	pythiaengine.readString("Random::setSeed = on");
   	pythiaengine.readString("Random::seed =0");
   	pTHat = "PhaseSpace:pTHatMin = "+pTHat+".";
   	pythiaengine.readString(pTHat);
@@ -319,7 +326,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	std::vector<float> *jety= new std::vector<float>();
   	std::vector<float> *jetphi= new std::vector<float>();
   	std::vector<float> *jetpT= new std::vector<float>();
-  	std::vector<int> *jetmult= new std::vector<float>();
+  	std::vector<float> *jetmult= new std::vector<float>();
   	std::vector<float> *jetR= new std::vector<float>();
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
@@ -355,6 +362,13 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     	{
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
+          /* HepMC Stuff
+          HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
+          ToHepMC.fill_next_event( pythia, hepmcevt ); //convert event from pythia to HepMC
+          ascii_io << hepmcevt; //write event to file 
+          delete hepmcevt; //delete event so it can be redeclared next time
+          */
+
     			//Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
@@ -376,7 +390,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   				jetmult->clear() ;
   				jetR ->clear();
   				/*fill the particle vectors*/
-  				fillTreebyEvent(pytthiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,daughter1,daughter2);
+  				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,daughter1,daughter2);
   				/*fill the jet vectors*/
   				fillTreebySlowJet(antikT2,jetmult,jety,jetphi,jetpT,.2);
   				fillTreebySlowJet(antikT2,jetmult,jety,jetphi,jetpT,.3);
