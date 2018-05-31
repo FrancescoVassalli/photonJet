@@ -17,7 +17,10 @@ using namespace std;
 /*#include "XjPhi.C"
 #include "CollisionClasses.C"
 #include "SimpleMath.C"*/
-
+//gROOT->ProcessLine("#include <vector>");
+#ifdef __MAKECINT__
+#pragma link C++ class vector<float>+;
+#endif
 //float** qXjPhiTo2DArray(queue<XjPhi> in); //in utils for now
 
 	/*
@@ -338,7 +341,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     				if (tempXj.getphi()>7*TMath::Pi()/8)
     				{
     					good++;
-    					tempXj.matchPartons(p1,p2); // do I do anythign with these
+    					// let's do this in another file tempXj.matchPartons(p1,p2); // do I do anythign with these
     					//tempXj.addEvent(pythiaengine.event); // photon and photonJet have the event?
     					/*if (tempXj.isDirect())
     					{
@@ -542,7 +545,7 @@ int main(int argc, char const *argv[] )
 	return 0;
 }
 
-float deltaPhi(Photon p, Jet j){
+inline float deltaPhi(Photon p, Jet j){
 	Scalar r= Scalar(TMath::Abs((p.getphi()-j.getphi()).value));
 	if (r>TMath::Pi())
 	{
@@ -570,7 +573,7 @@ inline float deltaR(Parton p, Jet j){
 	return out;
 }*/
 
-void fillTreebyEvent(TTree *tempEvent, Event e){
+/*void fillTreebyEvent(TTree *tempEvent, Event e){
 	int particle,status,id,mother2,mother1,daughter1,daughter2;
 	float pT,eta,phi;
   	tempEvent->Branch("Particles",&particle);
@@ -612,7 +615,7 @@ void fillTreebyEvent(queue<int> status,queue<int> id,queue<float> pT,queue<float
   		daughter2.push(e[i].daughter2());
 	}
 
-}
+}*/
 
 void fillTreebyEvent(vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2,Event e){
 	for (int i = 0; i < e.size(); ++i)

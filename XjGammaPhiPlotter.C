@@ -2,10 +2,11 @@ using namespace std;
 
 //#include "Utils.C"
 #include "CollisionClasses.C"
-#include "XjPhi.C"
+//#include "XjPhi.C"
 #include <sstream>
 
 const double PI = TMath::Pi();
+bool namein(string test, std::vector<string> v);
 
 /* //for when you dont use TTrees which you always should 
 void plotText(string filename){
@@ -66,15 +67,55 @@ void plotXjPhi(TChain *dirc,TChain *frag){
 	//p_dirc->Draw("lego2");
 }
 
-void plot1D(TChain* dirc, TChain *frag){
+bool namein(string test, std::vector<string> v){
+	bool in =false;
+	for (std::vector<string>::iterator i = v.begin(); i != v.end(); ++i)
+	{
+		in= (*i==test);
+		if (in)
+		{
+			return in;
+		}
+	}
+	return in;
+}
+
+void plot1D(TChain *tree){
+	//could also turn them all off and turn the ones I want on
+	vector<string> interestBranches={"xj","direct","isoEt"};
+	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
+	for (TObject* loopBranch : *branches)
+	{
+		if (!namein(string(loopBranch->GetName()),interestBranches))
+		{
+			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
+		}
+	}
+	float xj,isoET;
+	bool direct;
+	tree->SetBranchAddress("xj",&xj);
+	tree->SetBranchAddress("direct",&direct);
+	tree->SetBranchAddress("isoEt",&isoET);
 	TCanvas *tc = new TCanvas();
 	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
 	const int binL=19;
 	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
 	TH1F *other = new TH1F("plotb","",binL,bins);
-	/*make the plot nice*/
-	dirc->Draw("xj>>plota");
-	frag->Draw("xj>>plotb");
+	for (int i = 0; i < tree->GetEntries(); ++i)
+	{
+		tree->GetEntry(i);
+		if (isoET<3) //ET cut
+		{
+			if (direct) //direct vs frag
+			{
+				plot->Fill(xj);
+			}
+			else{
+				other->Fill(xj);
+			}
+		}
+	}
+	cout<<other->Integral()<<endl;
 	plot->Scale(1/plot->Integral(),"width");
 	other->Scale(1/other->Integral(),"width");
 	TLegend *tl =new TLegend(.1,.6,.4,.9);
@@ -126,20 +167,18 @@ void xjgpT(TChain* dirc, TChain *frag){
 
 
 void XjGammaPhiPlotter(){
-	string filename = "Xj2Phi";
+	string filename = "XjPhi";
 	string extension = ".root";
-	int filecount=70;
-	TChain *dirc = new TChain("tree400"); //use tree200 for frag and tree100 for direct
-	TChain *frag = new TChain("tree300");
+	int filecount=90;
+	TChain *all = new TChain("interest");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
 	{
 		temp = filename+to_string(i)+extension;
-		dirc->Add(temp.c_str());
-		frag->Add(temp.c_str());
+		all->Add(temp.c_str());
 	}
 	//plotXjPhi(dirc,frag);
-	plot1D(dirc,frag);
+	plot1D(all);
 	//xjgpT(dirc,frag);
 	//plot4Bars(dirc,frag);
 	//plotFlavpT(dirc,frag);
