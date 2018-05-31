@@ -40,17 +40,29 @@ void plotText(string filename){
 
 }*/
 
-void plotXjPhi(TChain *dirc,TChain *frag){
+/*void plotXjPhi(TChain *dirc,TChain *frag){
+	vector<string> interestBranches={"xj","direct","isoEt","photonPosition",};
+	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
+	for (TObject* loopBranch : *branches)
+	{
+		if (!namein(string(loopBranch->GetName()),interestBranches))
+		{
+			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
+		}
+	}
+	float xj,isoET;
+	bool direct;
+	tree->SetBranchAddress("xj",&xj);
+	tree->SetBranchAddress("direct",&direct);
+	tree->SetBranchAddress("isoEt",&isoET);
 	TCanvas *tc = new TCanvas();
 	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
 	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
 	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
 	//gStyle->SetOptStat(1);
 	/*make the plot nice*/
-	tc->SetRightMargin(.15);
+	/*tc->SetRightMargin(.15);
 	//plot->Scale(1,"width");
-	dirc->Draw("xj:phi>>plot1");
-	frag->Draw("xj:phi>>plot2");
 	axisTitles(p_dirc,"#Delta#phi","Xj");
 	axisTitleSize(p_dirc,.07);
 	axisTitleOffset(p_dirc,1);
@@ -65,7 +77,7 @@ void plotXjPhi(TChain *dirc,TChain *frag){
 	p_frag->Draw("colz");
 	//tc2->cd(1);
 	//p_dirc->Draw("lego2");
-}
+}*/
 
 bool namein(string test, std::vector<string> v){
 	bool in =false;
@@ -116,6 +128,7 @@ void plot1D(TChain *tree){
 		}
 	}
 	cout<<other->Integral()<<endl;
+	cout<<plot->Integral()<<endl;
 	plot->Scale(1/plot->Integral(),"width");
 	other->Scale(1/other->Integral(),"width");
 	TLegend *tl =new TLegend(.1,.6,.4,.9);
@@ -126,6 +139,7 @@ void plot1D(TChain *tree){
 	axisTitleOffset(plot,.7);
 	smallBorders();
 	makeDifferent(other,1);
+	doubleZero(plot,1.6,1.9);
 	plot->Draw("p");
 	other->Draw("same p");
 	tl->Draw();

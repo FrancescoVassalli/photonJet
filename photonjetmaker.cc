@@ -239,8 +239,8 @@ T positivePhi(T in){
 	return in;
 }
 
-inline bool quickPhotonCheck(Particle p, int gammaCut){
-	return p.id()==22&&p.isFinal()&&p.pT()>gammaCut&&TMath::Abs(p.eta())<1.1;
+inline bool quickPhotonCheck(Particle p, float gammaCut, float etaCUT){
+	return p.id()==22&&p.isFinal()&&p.pT()>gammaCut&&TMath::Abs(p.eta())<etaCUT;
 }
 
 /* list of "problem" events that I am still getting
@@ -259,8 +259,8 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-/*
-stringstream eventToStream(Event e){
+
+/*stringstream eventToStream(Event e){
 	stringstream ss;
 	ss<<"_______________________________________________________________________________________________________________________"<<'\n';
     ss<<"||                                   Events that contain isophoton                                                   ||"<<'\n';
@@ -280,10 +280,6 @@ stringstream eventToStream(Event e){
 void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
-  	/*TTree* directTree=new TTree("tree100","direct");
-  	TTree* fragTree = new TTree("tree200","frag");
-  	TTree* fragTreeISO = new TTree("tree300","fragISO");
-  	TTree* directTreeISO = new TTree("tree400","directISO");*/
   	TTree* interestXj = new TTree("interest","interest");
   	/*pythia set up*/
   	Pythia pythiaengine;
@@ -298,14 +294,65 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	int good=0;
   	/* Tbranching  */
   	SlowJet *antikT = new SlowJet(-1,.4,10,4,2,1); // what should be my minimum jet pT
-  	 // are the monojets low pT photons with match 
-  	//Jet *temp =NULL;
-  	int finalGammaCount=0;
+  	int position;
+  	bool jetquark;
+  	float xjtemp;
+  	vector<int> *status= new std::vector<int> ();
+  	vector<int> *id= new std::vector<int> ();
+  	vector<float> *pT= new std::vector<float> ();
+  	vector<float> *eta= new std::vector<float> ();
+  	vector<float> *phi= new std::vector<float> ();
+  	vector<int> *mother1= new std::vector<int> ();
+  	vector<int> *mother2= new std::vector<int> ();
+  	vector<int> *daughter1= new std::vector<int> ();
+  	vector<int> *daughter2= new std::vector<int> ();
+  	std::vector<float> *eT= new std::vector<float> ();
+  
+  	interestXj->Branch("Status",&status);
+  	interestXj->Branch("ID",&id);
+  	interestXj->Branch("pT",&pT);
+  	interestXj->Branch("eta",&eta);
+  	interestXj->Branch("phi",&phi);
+  	interestXj->Branch("mother1",&mother1);
+  	interestXj->Branch("mother2",&mother2);
+  	interestXj->Branch("daughter1",&daughter1);
+  	interestXj->Branch("daughter2",&daughter2);
+  	interestXj->Branch("particleET",&eT);
+  	float jeteta;
+  	float jetphi;
+  	float isoEt;
+  	interestXj->Branch("jeteta",&jeteta);
+  	interestXj->Branch("jetphi",&jetphi);
+  	interestXj->Branch("photonPosition",&position);
+  	interestXj->Branch("xj",&xjtemp);
+  	//interestXj->Branch("isoEt",&isoEt);
+  	interestXj->Branch("direct", &jetquark);
+  	/*while(!eventQ.empty()){
+  		status->clear();
+  		id->clear();
+  		pT->clear();
+  		eta ->clear();
+  		phi ->clear();
+  		mother1->clear();
+  		mother2->clear();
+  		daughter1->clear();
+  		daughter2->clear();
+  		fillTreebyEvent(status,id,pT,eta,phi,mother1,mother2,daughter1,daughter2,eventQ.front().e);
+  		xjtemp=eventQ.front().pj.getXj().value;
+  		position=eventQ.front().pj.getPhoton().getPosition();
+  		jeteta=eventQ.front().pj.getJet().gety().value;
+  		jetphi=eventQ.front().pj.getJet().getphi().value;
+  		isoEt=eventQ.front().pj.getPhoton().getIsoEt();
+  		jetquark=eventQ.front().pj.isJetQuark();
+  		interestXj->Fill();
+  		eventQ.pop();
+  		//pushcount--;
+  	}*/
   	//stringstream ss;
   	//stringstream interest;
   	//queue<PhotonJet> dmap;
   	//queue<PhotonJet> fmap;
-  	queue<MyPair> eventQ;
+  	//queue<MyPair> eventQ;
   	//queue<float> monoJetEventPhis;
   	PhotonJet tempXj;
   	/* generation loop*/
@@ -329,16 +376,14 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut))
     		{
     			finalGammaCount++;
-    			//these partons are suspect 
-    			Parton p1 = Parton(pythiaengine.event[5].id(),positivePhi(pythiaengine.event[5].phi()),positivePhi(pythiaengine.event[5].eta()),pythiaengine.event[5].px(),pythiaengine.event[5].py());
-    			Parton p2 = Parton(pythiaengine.event[6].id(),positivePhi(pythiaengine.event[6].phi()),positivePhi(pythiaengine.event[6].eta()),pythiaengine.event[6].px(),pythiaengine.event[6].py());
-    			Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()),EventToQueue(pythiaengine.event));
+    			Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
     			antikT->analyze(pythiaengine.event);
-    			//ss<<finalGammaCount<<'\n';
+    			/*fill the tree*/ 
     			if(antikT->sizeJet()>1){
+    				
     				//biasing by only looking at first 2?
     				tempXj=PhotonJet(myPhoton,Jet(antikT->pT(1),positivePhi(antikT->phi(1)),antikT->y(1)),Jet(antikT->pT(0),positivePhi(antikT->phi(0)),antikT->y(0)));
-    				if (tempXj.getphi()>7*TMath::Pi()/8)
+    				if (tempXj.getphi()>7.0*TMath::Pi()/8.0)
     				{
     					good++;
     					// let's do this in another file tempXj.matchPartons(p1,p2); // do I do anythign with these
@@ -354,10 +399,6 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
     							pushcount++;
     						}
     					}*/
-    					MyPair ptemp;
-    					ptemp.e=pythiaengine.event;
-    					ptemp.pj=tempXj;
-    					eventQ.push(ptemp);
     					
     				}//do I want an else?
 
@@ -426,59 +467,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	fragTreeISO->Branch("jetquark",&jetquark);
   	directTreeISO->Branch("jetquark",&jetquark);*/
 
-  	int position;
-  	bool jetquark;
-  	float xjtemp;
-  	vector<int> *status= new std::vector<int> ();
-  	vector<int> *id= new std::vector<int> ();
-  	vector<float> *pT= new std::vector<float> ();
-  	vector<float> *eta= new std::vector<float> ();
-  	vector<float> *phi= new std::vector<float> ();
-  	vector<int> *mother1= new std::vector<int> ();
-  	vector<int> *mother2= new std::vector<int> ();
-  	vector<int> *daughter1= new std::vector<int> ();
-  	vector<int> *daughter2= new std::vector<int> ();
-  	interestXj->Branch("photonPosition",&position);
-  	interestXj->Branch("xj",&xjtemp);
-  	interestXj->Branch("Status",&status);
-  	interestXj->Branch("ID",&id);
-  	interestXj->Branch("pT",&pT);
-  	interestXj->Branch("eta",&eta);
-  	interestXj->Branch("phi",&phi);
-  	interestXj->Branch("mother1",&mother1);
-  	interestXj->Branch("mother2",&mother2);
-  	interestXj->Branch("daughter1",&daughter1);
-  	interestXj->Branch("daughter2",&daughter2);
-
-  	float jeteta;
-  	float jetphi;
-  	float isoEt;
-  	interestXj->Branch("jeteta",&jeteta);
-  	interestXj->Branch("jetphi",&jetphi);
-  	interestXj->Branch("isoEt",&isoEt);
-  	interestXj->Branch("direct", &jetquark);
-  	//cout<<"CheckSUM:"<<pushcount;
-  	while(!eventQ.empty()){
-  		status->clear();
-  		id->clear();
-  		pT->clear();
-  		eta ->clear();
-  		phi ->clear();
-  		mother1->clear();
-  		mother2->clear();
-  		daughter1->clear();
-  		daughter2->clear();
-  		fillTreebyEvent(status,id,pT,eta,phi,mother1,mother2,daughter1,daughter2,eventQ.front().e);
-  		xjtemp=eventQ.front().pj.getXj().value;
-  		position=eventQ.front().pj.getPhoton().getPosition();
-  		jeteta=eventQ.front().pj.getJet().gety().value;
-  		jetphi=eventQ.front().pj.getJet().getphi().value;
-  		isoEt=eventQ.front().pj.getPhoton().getIsoEt();
-  		jetquark=eventQ.front().pj.isJetQuark();
-  		interestXj->Fill();
-  		eventQ.pop();
-  		//pushcount--;
-  	}
+ 
   	cout<<"="<<pushcount<<std::endl;
   	cout<<"total"<<good<<std::endl;
   	//cout<<ss.str();

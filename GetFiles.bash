@@ -5,10 +5,10 @@ RUN=1
 FRONT="XjPhi" #put the file name here 
 BACK=".root" #put the extension here
 START=0 #put the number of the file you want to start iternating at here
-STOP=1 #last number here 
+STOP=89 #last number here 
 USRNAME=vassalli #your RCF username here
 FOLDER=photonJet #Folder on your RCF account that the files are in
-DIRECTORY=/gpfs/mnt/gpfs04/sphenix/user/vassalli
+DIRECTORY=/sphenix/user/vassalli
 LOCAL=/home/user/Dropbox/Nagel/project/photon/
 FILENUMBER=$START
 let "START++"
