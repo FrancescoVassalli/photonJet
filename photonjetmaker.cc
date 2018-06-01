@@ -18,7 +18,7 @@ using namespace std;
 #ifdef __MAKECINT__
 #pragma link C++ class vector<float>+;
 #endif
-
+//gROOT->ProcessLine("#include<vector>");
 
 //%ROOT_COMMON=-L$(ROOTSYS)/lib -wl,-rpath,$(ROOTSYS)/lib
 
@@ -281,7 +281,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	TTree* interestXj = new TTree("interest","interest");
   	using namespace HepMC;
     HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
-    HepMC::IO_GenEvent ascii_io(filename, std::ios::out); //file where HepMC events will be stored.
+    HepMC::IO_GenEvent ascii_io(hepName, std::ios::out); //file where HepMC events will be stored.
 	/*pythia set up*/
     Pythia pythiaengine;
     pythiaengine.readString("Beams:eCM = 200.");
@@ -395,7 +395,7 @@ int main(int argc, char const *argv[] )
 	string fileOut = string(argv[1]);
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
-	int nEvents = 30000;
+	int nEvents = 10000;
 	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
 }
