@@ -61,7 +61,7 @@ void swapPointer(T* a, T* b){
 	b=t;
 }
 
-inline bool isDirect(int i)
+/*inline bool isDirect(int i)
 {
   if(i > 200 and i < 267)
   {
@@ -71,7 +71,7 @@ inline bool isDirect(int i)
   {
     return false;
   }
-}
+}*/
 
 class DiJet
 {
@@ -244,23 +244,7 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2,){
-	for (int i = 0; i < e.size(); ++i)
-	{
-		status->push_back(e[i].status());
-  		id->push_back(e[i].id());
-  		pT->push_back(e[i].pT());
-  		eT->push_back(e[i].eT());
-  		eta->push_back(e[i].eta());
-  		phi->push_back(e[i].phi());
-  		mother1->push_back(e[i].mother1());
-  		mother2->push_back(e[i].mother2());
-  		daughter1->push_back(e[i].daughter1());
-  		daughter2->push_back(e[i].daughter2());
-	}
-}
-
-void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2,){
+void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2){
 	for (int i = 0; i < e.size(); ++i)
 	{
 		status->push_back(e[i].status());
@@ -287,7 +271,7 @@ void fillTreebySlowJet(SlowJet* antikT, float R,vector<int>* mult, vector<float>
 	}
 }
 
-void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
+void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* interestXj = new TTree("interest","interest");
@@ -319,7 +303,7 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   	std::vector<float> *jety= new std::vector<float>();
   	std::vector<float> *jetphi= new std::vector<float>();
   	std::vector<float> *jetpT= new std::vector<float>();
-  	std::vector<int> *jetmult= new std::vector<float>();
+  	std::vector<int> *jetmult= new std::vector<int>();
   	std::vector<float> *jetR= new std::vector<float>();
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
@@ -376,11 +360,11 @@ void makeData(std::string filename, int nEvents, string pTHat, int gammaCut){
   				jetmult->clear() ;
   				jetR ->clear();
   				/*fill the particle vectors*/
-  				fillTreebyEvent(pytthiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,daughter1,daughter2);
+  				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,daughter1,daughter2);
   				/*fill the jet vectors*/
-  				fillTreebySlowJet(antikT2,jetmult,jety,jetphi,jetpT,.2);
-  				fillTreebySlowJet(antikT2,jetmult,jety,jetphi,jetpT,.3);
-  				fillTreebySlowJet(antikT2,jetmult,jety,jetphi,jetpT,.4);
+  				fillTreebySlowJet(antikT2,.2,jetmult,jety,jetphi,jetpT,jetR);
+  				fillTreebySlowJet(antikT2,.3,jetmult,jety,jetphi,jetpT,jetR);
+  				fillTreebySlowJet(antikT2,.4,jetmult,jety,jetphi,jetpT,jetR);
   				/* fill the non vector*/
   				position=i;
   				jetquark=isDirect(pythiaengine.info.code());

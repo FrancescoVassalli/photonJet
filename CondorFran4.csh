@@ -9,7 +9,7 @@ source /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet.cshrc
                 
 set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli"
 
-./photonjetmaker XjPhi_pT15_${1} HepMC_pT15_${1} 35 40
+./photonjetmaker XjPhi_pT15_${1} 35 40
 
 
 cp XjPhi.root $DESTINATION
