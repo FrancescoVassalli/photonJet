@@ -382,7 +382,7 @@ int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
 	string pTHat = string(argv[2]);
-	int gammaCut= stoi(string(argv[3]));
+	int gammaCut= strtod(string(argv[3]));
 	int nEvents = 30000;
 	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
