@@ -312,19 +312,19 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
   	interestXj->Branch("ID",&id);
-  	interestXj->Branch("pT",&pT);
-  	interestXj->Branch("eta",&eta);
-  	interestXj->Branch("phi",&phi);
+  	interestXj->Branch("pT",pT);
+  	interestXj->Branch("eta",eta);
+  	interestXj->Branch("phi",phi);
   	interestXj->Branch("mother1",&mother1);
   	interestXj->Branch("mother2",&mother2);
   	interestXj->Branch("daughter1",&daughter1);
   	interestXj->Branch("daughter2",&daughter2);
-  	interestXj->Branch("particleET",&eT);
-  	interestXj->Branch("jety",&jety);
-  	interestXj->Branch("jetphi",&jetphi);
-  	interestXj->Branch("jetpT", &jetpT);
-  	interestXj->Branch("jetmult",&jetmult);
-  	interestXj->Branch("jetR",&jetR);
+  	interestXj->Branch("particleET",eT);
+  	interestXj->Branch("jety",jety);
+  	interestXj->Branch("jetphi",jetphi);
+  	interestXj->Branch("jetpT", jetpT);
+  	interestXj->Branch("jetmult",jetmult);
+  	interestXj->Branch("jetR",jetR);
   	/* varibles for the TTree*/
   	int position;
   	bool jetquark;
