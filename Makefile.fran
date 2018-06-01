@@ -1,5 +1,5 @@
 SHELL=/usr/bin/env bash
-CXX_COMMON=-O2  -pedantic -W -fPIC
+CXX_COMMON=-O2  -pedantic -W -fPIC -std=c++11
 PREFIX_INCLUDE=/phenix/u/vassalli/pythia8230/include
 PREFIX_LIB=/phenix/u/vassalli/pythia8230/lib
 CXX_COMMON:=-I$(PREFIX_INCLUDE) $(CXX_COMMON)
