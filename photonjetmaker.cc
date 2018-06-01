@@ -20,6 +20,9 @@ using namespace std;
 #endif
 
 
+//%ROOT_COMMON=-L$(ROOTSYS)/lib -wl,-rpath,$(ROOTSYS)/lib
+
+
  class myEvent
  {
  public:
