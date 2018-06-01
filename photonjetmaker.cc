@@ -7,7 +7,7 @@
 #include <queue>
 #include <fstream>
 #include "Pythia8/Pythia.h"
-//#include "Pythia8Plugins/HepMC2.h" //added plugin for HepMC, think we will need some new library in pythia for this
+#include "Pythia8Plugins/HepMC2.h" //added plugin for HepMC, think we will need some new library in pythia for this
 using namespace Pythia8;
 using namespace std;
 #include "TFile.h"
@@ -272,16 +272,14 @@ void fillTreebySlowJet(SlowJet* antikT, float R,vector<int>* mult, vector<float>
 	}
 }
 void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
+	string hepName = filename+".dat";
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* interestXj = new TTree("interest","interest");
-  	/*pythia set up*/
-
-    /* HepMC stuff
+  	using namespace HepMC;
     HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
-    HepMC::IO_GenEvent ascii_io("put command line input here.dat", std::ios::out); //file where HepMC events will be stored.
-    */
-
+    HepMC::IO_GenEvent ascii_io(filename, std::ios::out); //file where HepMC events will be stored.
+	/*pythia set up*/
     Pythia pythiaengine;
     pythiaengine.readString("Beams:eCM = 200.");
   	pythiaengine.readString("promptphoton:all = on");
@@ -309,7 +307,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	std::vector<float> *jety= new std::vector<float>();
   	std::vector<float> *jetphi= new std::vector<float>();
   	std::vector<float> *jetpT= new std::vector<float>();
-  	std::vector<float> *jetmult= new std::vector<float>();
+  	std::vector<int> *jetmult= new std::vector<int>();
   	std::vector<float> *jetR= new std::vector<float>();
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
@@ -345,12 +343,10 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     	{
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
-          /* HepMC Stuff
-          HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
-          ToHepMC.fill_next_event( pythia, hepmcevt ); //convert event from pythia to HepMC
-          ascii_io << hepmcevt; //write event to file 
-          delete hepmcevt; //delete event so it can be redeclared next time
-          */
+          		HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
+          		ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
+          		ascii_io << hepmcevt; //write event to file 
+          		delete hepmcevt; //delete event so it can be redeclared next time
 
     			//Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
     			antikT2->analyze(pythiaengine.event);
@@ -395,7 +391,7 @@ int main(int argc, char const *argv[] )
 {
 	string fileOut = string(argv[1]);
 	string pTHat = string(argv[2]);
-	int gammaCut= strtod(string(argv[3]));
+	float gammaCut= strtod(argv[3],NULL);
 	int nEvents = 30000;
 	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
