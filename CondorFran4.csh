@@ -1,4 +1,4 @@
-#This is the condor shell script for 20GeV photons, note pTHatMin should be 15GeV
+#This is the condor shell script for 40GeV photons, note pTHatMin should be 35GeV
 
 #!/bin/csh                                                                                                                                            
 
@@ -9,7 +9,7 @@ source /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet.cshrc
                 
 set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli"
 
-./photonjetmaker XjPhi_pT15_${1} HepMC_pT15_${1} 15 20
+./photonjetmaker XjPhi_pT15_${1} HepMC_pT15_${1} 35 40
 
 
 cp XjPhi.root $DESTINATION
