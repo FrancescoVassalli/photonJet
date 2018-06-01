@@ -12,8 +12,6 @@ set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli"
 ./photonjetmaker XjPhi_pT15_${1} 15 20
 
 
-cp XjPhi.root $DESTINATION
-rm XjPhi.root
-
+mv XjPhi* $DESTINATION
 exit 0
 
