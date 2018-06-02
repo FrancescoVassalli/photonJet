@@ -15,10 +15,11 @@ using namespace std;
 #include "TRandom3.h"
 #include "TMath.h"
 #include "Utils.C" 
+#include "TROOT.h"
+
 #ifdef __MAKECINT__
 #pragma link C++ class vector<float>+;
 #endif
-//gROOT->ProcessLine("#include<vector>");
 
  class myEvent
  {
@@ -283,7 +284,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     Pythia pythiaengine;
     pythiaengine.readString("Beams:eCM = 200.");
   	pythiaengine.readString("promptphoton:all = on");
- 	  pythiaengine.readString("HardQCD:all = on");
+ 	pythiaengine.readString("HardQCD:all = on");
   	pythiaengine.readString("Random::setSeed = on");
   	pythiaengine.readString("Random::seed =0");
   	pTHat = "PhaseSpace:pTHatMin = "+pTHat+".";
@@ -382,6 +383,9 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     		}
     	}
   	}
+  	delete antikT2;
+  	delete antikT3;
+  	delete antikT4;
   	interestXj->Write();
   	f->Write();
   	f->Close();
