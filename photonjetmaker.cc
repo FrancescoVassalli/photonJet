@@ -245,30 +245,30 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-void fillTreebyEvent(Event e, vector<int> status,vector<int> id,vector<float> pT,vector<float> eT,vector<float> eta,vector<float> phi,vector<int> mother1,vector<int> mother2,vector<int> daughter1,vector<int> daughter2){
+void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2){
 	for (int i = 0; i < e.size(); ++i)
 	{
-		status.push_back(e[i].status());
-  		id.push_back(e[i].id());
-  		pT.push_back(e[i].pT());
-  		eT.push_back(e[i].eT());
-  		eta.push_back(e[i].eta());
-  		phi.push_back(e[i].phi());
-  		mother1.push_back(e[i].mother1());
-  		mother2.push_back(e[i].mother2());
-  		daughter1.push_back(e[i].daughter1());
-  		daughter2.push_back(e[i].daughter2());
+		status->push_back(e[i].status());
+  		id->push_back(e[i].id());
+  		pT->push_back(e[i].pT());
+  		eT->push_back(e[i].eT());
+  		eta->push_back(e[i].eta());
+  		phi->push_back(e[i].phi());
+  		mother1->push_back(e[i].mother1());
+  		mother2->push_back(e[i].mother2());
+  		daughter1->push_back(e[i].daughter1());
+  		daughter2->push_back(e[i].daughter2());
 	}
 }
 
-void fillTreebySlowJet(SlowJet* antikT, float R,vector<int> mult, vector<float> y, vector<float> phi, vector<float> pT,vector<float> r){
+void fillTreebySlowJet(SlowJet* antikT, float R,vector<int>* mult, vector<float>* y, vector<float>* phi, vector<float>* pT,vector<float>* r){
 	for (int i = 0; i < antikT->sizeJet(); ++i)
 	{
-		mult.push_back(antikT->multiplicity(i));
-		y.push_back(antikT->y(i));
-		phi.push_back(antikT->phi(i));
-		pT.push_back(antikT->pT(i));
-		r.push_back(R);
+		mult->push_back(antikT->multiplicity(i));
+		y->push_back(antikT->y(i));
+		phi->push_back(antikT->phi(i));
+		pT->push_back(antikT->pT(i));
+		r->push_back(R);
 	}
 }
 void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
@@ -294,37 +294,37 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	SlowJet *antikT3 = new SlowJet(-1,.4,10,3,2,1); 
   	SlowJet *antikT4 = new SlowJet(-1,.4,10,4,2,1); 
   	/*vectors for the TTree*/
-  	vector<int> status;
-  	vector<int> id;
-  	vector<float> pT ;
-  	vector<float> eta ;
-  	vector<float> phi ;
-  	vector<int> mother1;
-  	vector<int> mother2;
-  	vector<int> daughter1;
-  	vector<int> daughter2;
-  	std::vector<float> eT ;
-  	std::vector<float> jety ;
-  	std::vector<float> jetphi ;
-  	std::vector<float> jetpT ;
-  	std::vector<int> jetmult;
-  	std::vector<float> jetR ;
+  	vector<int> *status= new std::vector<int>();
+  	vector<int> *id= new std::vector<int> ();
+  	vector<float> *pT= new std::vector<float>();
+  	vector<float> *eta= new std::vector<float>();
+  	vector<float> *phi= new std::vector<float>();
+  	vector<int> *mother1= new std::vector<int>();
+  	vector<int> *mother2= new std::vector<int>();
+  	vector<int> *daughter1= new std::vector<int>();
+  	vector<int> *daughter2= new std::vector<int>();
+  	std::vector<float> *eT= new std::vector<float>();
+  	std::vector<float> *jety= new std::vector<float>();
+  	std::vector<float> *jetphi= new std::vector<float>();
+  	std::vector<float> *jetpT= new std::vector<float>();
+  	std::vector<int> *jetmult= new std::vector<int>();
+  	std::vector<float> *jetR= new std::vector<float>();
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
   	interestXj->Branch("ID",&id);
-  	interestXj->Branch("pT",pT);
-  	interestXj->Branch("eta",eta);
-  	interestXj->Branch("phi",phi);
+  	interestXj->Branch("pT",&pT);
+  	interestXj->Branch("eta",&eta);
+  	interestXj->Branch("phi",&phi);
   	interestXj->Branch("mother1",&mother1);
   	interestXj->Branch("mother2",&mother2);
   	interestXj->Branch("daughter1",&daughter1);
   	interestXj->Branch("daughter2",&daughter2);
-  	interestXj->Branch("particleET",eT);
-  	interestXj->Branch("jety",jety);
-  	interestXj->Branch("jetphi",jetphi);
-  	interestXj->Branch("jetpT", jetpT);
-  	interestXj->Branch("jetmult",jetmult);
-  	interestXj->Branch("jetR",jetR);
+  	interestXj->Branch("particleET",&eT);
+  	interestXj->Branch("jety",&jety);
+  	interestXj->Branch("jetphi",&jetphi);
+  	interestXj->Branch("jetpT", &jetpT);
+  	interestXj->Branch("jetmult",&jetmult);
+  	interestXj->Branch("jetR",&jetR);
   	/* varibles for the TTree*/
   	int position;
   	bool jetquark;
@@ -353,21 +353,21 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     			antikT3->analyze(pythiaengine.event);
     			antikT4->analyze(pythiaengine.event);
     			/*fill the tree*/ 
-    			status.clear();
-  				id.clear();
-  				pT .clear();
-  				eta.clear() ;
-  				phi .clear();
-  				mother1.clear();
-  				mother2.clear();
-  				daughter1.clear();
-  				daughter2.clear();
-  				eT.clear();
-  				jety .clear();
-  				jetphi.clear() ;
-  				jetpT.clear() ;
-  				jetmult.clear() ;
-  				jetR .clear();
+    			status->clear();
+  				id->clear();
+  				pT ->clear();
+  				eta->clear() ;
+  				phi ->clear();
+  				mother1->clear();
+  				mother2->clear();
+  				daughter1->clear();
+  				daughter2->clear();
+  				eT->clear();
+  				jety ->clear();
+  				jetphi->clear() ;
+  				jetpT->clear() ;
+  				jetmult->clear() ;
+  				jetR ->clear();
   				/*fill the particle vectors*/
   				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,daughter1,daughter2);
   				/*fill the jet vectors*/
