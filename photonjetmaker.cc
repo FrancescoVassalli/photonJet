@@ -249,6 +249,7 @@ queue<myParticle> EventToQueue(Event e){
 void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,float* pT,float* eT,float* eta,float* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2){
 	for (int i = 0; i < e.size(); ++i)
 	{
+	  if(e[i].isFinal()){
 		status->push_back(e[i].status());
   		id->push_back(e[i].id());
   		pT[i]=e[i].pT();
@@ -259,6 +260,7 @@ void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,float* pT,floa
   		mother2->push_back(e[i].mother2());
   		daughter1->push_back(e[i].daughter1());
   		daughter2->push_back(e[i].daughter2());
+	  }
 	}
 }
 
@@ -280,7 +282,7 @@ void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, f
 	    pT[i+diplacement]=a2->pT(i);
 	    r[i+diplacement]=0.3;
 	}
-	displacement=mult->size();
+	diplacement=mult->size();
 	for (int i = 0; i < a3->sizeJet(); ++i)
     {
         mult->push_back(a3->multiplicity(i));
@@ -328,10 +330,10 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	
   	std::vector<int> *jetmult= new std::vector<int>();
 
-  	float jety[100];
-  	float jetphi[100];
-  	float jetpT[100];
-  	float jetR[100];
+  	float jety[200];
+  	float jetphi[200];
+  	float jetpT[200];
+  	float jetR[200];
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
   	interestXj->Branch("ID",&id);
@@ -343,11 +345,11 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("daughter1",&daughter1);
   	interestXj->Branch("daughter2",&daughter2);
   	interestXj->Branch("particleET",eT,"eT[1000]/F");
-  	interestXj->Branch("jety",jety,"jety[100]/F");
-  	interestXj->Branch("jetphi",jetphi,"jetphi[100]/F");
-  	interestXj->Branch("jetpT", jetpT,"jetpT[100]/F");
+  	interestXj->Branch("jety",jety,"jety[200]/F");
+  	interestXj->Branch("jetphi",jetphi,"jetphi[200]/F");
+  	interestXj->Branch("jetpT", jetpT,"jetpT[200]/F");
   	interestXj->Branch("jetmult",&jetmult);
-  	interestXj->Branch("jetR",jetR,"jetR[100]/F");
+  	interestXj->Branch("jetR",jetR,"jetR[200]/F");
   	/* varibles for the TTree*/
   	int position;
   	bool jetquark;
@@ -408,7 +410,7 @@ int main(int argc, char const *argv[] )
 	string fileOut = string(argv[1]);
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
-	int nEvents = 10000;
+	int nEvents = 30000;
 	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
 }
