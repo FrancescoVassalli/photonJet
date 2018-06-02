@@ -1,3 +1,4 @@
+#!/bin/csh 
 #This is the condor shell script for 40GeV photons, note pTHatMin should be 35GeV
 
 #!/bin/csh                                                                                                                                            
