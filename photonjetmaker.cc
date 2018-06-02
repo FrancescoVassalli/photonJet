@@ -265,30 +265,30 @@ void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,float* pT,floa
 void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, float* y, float* phi, float* pT,float* r){
 	for (int i = 0; i < a1->sizeJet(); ++i)
 	{
-		mult->push_back(antikT->multiplicity(i));
-		y[i]=antikT->y(i);
-		phi[i]=antikT->phi(i);
-		pT[i]=antikT->pT(i);
+		mult->push_back(a1->multiplicity(i));
+		y[i]=a1->y(i);
+		phi[i]=a1->phi(i);
+		pT[i]=a1->pT(i);
 		r[i]=0.2;
 	}
 	int diplacement = mult->size();
-	for (int i = 0; i < a1->sizeJet(); ++i)
-	  {
-	    mult->push_back(antikT->multiplicity(i));
-	    y[i+diplacement]=antikT->y(i);
-	    phi[i+diplacement]=antikT->phi(i);
-	    pT[i+diplacement]=antikT->pT(i);
+	for (int i = 0; i < a2->sizeJet(); ++i)
+	{
+	    mult->push_back(a2->multiplicity(i));
+	    y[i+diplacement]=a2->y(i);
+	    phi[i+diplacement]=a2->phi(i);
+	    pT[i+diplacement]=a2->pT(i);
 	    r[i+diplacement]=0.3;
-	  }
+	}
 	displacement=mult->size();
-	for (int i = 0; i < a1->sizeJet(); ++i)
-          {
-            mult->push_back(antikT->multiplicity(i));
-            y[i+diplacement]=antikT->y(i);
-            phi[i+diplacement]=antikT->phi(i);
-	    pT[i+diplacement]=antikT->pT(i);
-            r[i+diplacement]=0.4;
-          }
+	for (int i = 0; i < a3->sizeJet(); ++i)
+    {
+        mult->push_back(a3->multiplicity(i));
+        y[i+diplacement]=a3->y(i);
+        phi[i+diplacement]=a3->phi(i);
+	    pT[i+diplacement]=a3->pT(i);
+        r[i+diplacement]=0.4;
+    }
 
 }
 void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
