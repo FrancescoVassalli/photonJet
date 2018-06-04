@@ -3,7 +3,7 @@
 
                                                                                                                                           
 
-source /phenix/u/vassalli/photonJet/.cshrc
+source /phenix/u/vassalli/.cshrc
 
 @ p = $1
 
