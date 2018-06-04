@@ -359,7 +359,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("photonPosition",&position);
   	interestXj->Branch("direct", &jetquark);
   	interestXj->Branch("end",&end);
-  	interestXj->Branch("jetend",&jetend)
+  	interestXj->Branch("jetend",&jetend);
   	/* generation loop*/
     for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
