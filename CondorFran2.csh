@@ -8,11 +8,15 @@ source /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet.cshrc
 @ p = $1
 
                 
-set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli"
+set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli/c2"
 
 ./photonjetmaker XjPhi_pT15_${1} 15 20
 
 
-mv XjPhi* $DESTINATION
+cp XjPhi_pT15_${1}.root $DESTINATION
+cp XjPhi_pT15_${1}.dat $DESTINATION
+rm XjPhi_pT15_${1}.root
+rm XjPhi_pT15_${1}.root
+
 exit 0
 

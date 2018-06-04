@@ -6,7 +6,7 @@ Universe        = vanilla
 Notification    = Never
 
 # The executable we want to run.
-Executable   =  /direct/phenix+u/vassalli/photonJet/CondorFran4.csh
+Executable   =  /direct/phenix+u/vassalli/photonJet/CondorFran2.csh
 
 # The argument to pass to the executable.
 Arguments       = $(Process) 
@@ -24,7 +24,7 @@ Rank            = CPU_Speed
 
 # Jobs with higher numerical priority will run before jobs
 # with lower numerical priority (-20 to 20).
-Priority        = +15
+Priority        = +19
 
 # Used to give jobs a directory with respect to file input
 # and output.

@@ -3,17 +3,17 @@
 
                                                                                                                                           
 
-source /phenix/u/vassalli/.cshrc
+source /phenix/u/vassalli/photonJet/.cshrc
 
 @ p = $1
 
                 
-set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli"
+set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet/"
 
 ./photonjetmaker XjPhi_pT10_${1} 5 10
 
 
-mv XjPhi* $DESTINATION
-
+cp XjPhi* $DESTINATION
+rm XjPhi*
 exit 0
 
