@@ -4,6 +4,7 @@ using namespace std;
 #include "CollisionClasses.C"
 //#include "XjPhi.C"
 #include <sstream>
+#include "Utils.C"
 
 const double PI = TMath::Pi();
 bool namein(string test, std::vector<string> v);
@@ -92,7 +93,7 @@ bool namein(string test, std::vector<string> v){
 	return in;
 }
 
-void plot1D(TChain *tree){
+void plot1D(TChain *tree, queue<Photon> ){
 	//could also turn them all off and turn the ones I want on
 	vector<string> interestBranches={"xj","direct","isoEt"};
 	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
@@ -179,6 +180,37 @@ void xjgpT(TChain* dirc, TChain *frag){
 	//p_dirc->Draw("lego2");
 }
 
+queue<Photon> makePhotons(TChain *chain){
+	vector<string> interestBranches={"photonPosition","eT","phi","eta","Status","direct"};
+	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
+	for (TObject* loopBranch : *branches)
+	{
+		if (!namein(string(loopBranch->GetName()),interestBranches))
+		{
+			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
+		}
+	}
+	float eT[300];
+	float phi[300];
+	float eta[300];
+	int photonPosition;
+	bool direct;
+	std::vector<int> *status=new vector<int>();
+	chain->SetBranchAddress("eT",&eT);
+	chain->SetBranchAddress("phi",&phi);
+	chain->SetBranchAddress("eta",&eta);
+	chain->SetBranchAddress("photonPosition",&photonPosition);
+	chain->SetBranchAddress("Status",&status);
+	chain->SetBranchAddress("direct",&direct);
+	queue<Photon> r;
+	for (int i = 0; i < chain->GetEntries(); ++i)
+	{
+		chain->GetEntry(i);
+		Photon pTemp(status->size(),photonPosition,eT,phi,eta,direct);
+		r.push(pTemp);
+	}
+	return r;
+}
 
 void XjGammaPhiPlotter(){
 	string filename = "XjPhi";

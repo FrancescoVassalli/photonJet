@@ -477,6 +477,13 @@ public:
 		this->eta= Scalar((float)_eta);
 		findIsoEt(all);
 	}
+	Photon(int SIZE, int position, float* eT, float* phi, float* eta, bool direct){
+		this->position=position;
+		pT=Scalar(eT[position]);
+		this->phi=Scalar(phi[position]);
+		this->eta=Scalar(eta[position]);
+		this->direct=direct;
+	}
 	~Photon(){}
 	Scalar getpT(){
 		return pT;
@@ -535,7 +542,7 @@ private:
 	bool direct;
 	float isoEt;
 	Parton parton;
-	float etCone = 0.4;
+	float etCone = 0.3;
 	int position;
 	bool inCone(float geta, float gphi)
 	{
@@ -547,6 +554,16 @@ private:
 	  {
 	    return false;
 	  }
+	}
+	float findIsoEt(float* phi, float* eta, float* eT, int SIZE){
+		isoEt=0;
+		for(int i=0;i<SIZE;i++){
+			if (inCone(eta[i],phi[i]))
+			{
+				isoEt+=eT[i];
+			}
+		}
+		return isoEt;
 	}
 };
 
