@@ -6,7 +6,7 @@ Universe        = vanilla
 Notification    = Never
 
 # The executable we want to run.
-Executable   =  /direct/phenix+u/vassalli/photonJet/CondorFran.csh
+Executable   =  /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet/CondorFran.csh
 
 # The argument to pass to the executable.
 Arguments       = $(Process) 
@@ -24,23 +24,23 @@ Rank            = CPU_Speed
 
 # Jobs with higher numerical priority will run before jobs
 # with lower numerical priority (-20 to 20).
-Priority        = +19
+Priority        = +18
 
 # Used to give jobs a directory with respect to file input
 # and output.
-Initialdir   = /direct/phenix+u/vassalli/photonJet
+Initialdir   = /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet
 
 # Input file given to the job.
 Input           = /dev/null
 
 # The job’s stdout is sent to this file.
-Output       =/direct/phenix+u/vassalli/condor_logs/out.$(Process)
+Output       =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs1/out.$(Process)
 
 # The job’s stderr is sent to this file.
-Error        =/direct/phenix+u/vassalli/condor_logs/err.$(Process))
+Error        =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs1//err.$(Process))
 
 # The condor log file for this job, useful when debuggin
-Log          =/direct/phenix+u/vassalli/condor_logs/log.$(Process)
+Log          =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs1/log.$(Process)
 
 # Email address to send notification to.
 Notify_user     = frva5829@colorado.edu
