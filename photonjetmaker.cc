@@ -345,6 +345,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("pT",pT,"pT[300]/F");
   	interestXj->Branch("eta",eta,"eta[300]/F");
   	interestXj->Branch("phi",phi,"phi[300]/F");
+	interestXj->Branch("eT",eT,"eT[300]/F");
   	interestXj->Branch("mother1",&mother1);
   	interestXj->Branch("mother2",&mother2);
   	//interestXj->Branch("daughter1",&daughter1);
