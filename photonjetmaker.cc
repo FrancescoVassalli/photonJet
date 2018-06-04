@@ -249,50 +249,52 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,float* pT,float* eT,float* eta,float* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2){
+void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,float* pT,float* eT,float* eta,float* phi,vector<int>* mother1,vector<int>* mother2){
+	int arrcount=0;
 	for (int i = 0; i < e.size(); ++i)
 	{
 	  if(e[i].isFinal()){
 		status->push_back(e[i].status());
   		id->push_back(e[i].id());
-  		pT[i]=e[i].pT();
-  		eT[i]=e[i].eT();
-  		eta[i]=e[i].eta();
-  		phi[i]=e[i].phi();
+  		pT[arrcount]=e[i].pT();
+  		eT[arrcount]=e[i].eT();
+  		eta[arrcount]=e[i].eta();
+  		phi[arrcount]=e[i].phi();
   		mother1->push_back(e[i].mother1());
   		mother2->push_back(e[i].mother2());
-  		daughter1->push_back(e[i].daughter1());
-  		daughter2->push_back(e[i].daughter2());
+  		arrcount++;
 	  }
 	}
 }
 
 void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, float* y, float* phi, float* pT,float* r){
+	int arrcount=0;
 	for (int i = 0; i < a1->sizeJet(); ++i)
 	{
 		mult->push_back(a1->multiplicity(i));
-		y[i]=a1->y(i);
-		phi[i]=a1->phi(i);
-		pT[i]=a1->pT(i);
-		r[i]=0.2;
+		y[arrcount]=a1->y(i);
+		phi[arrcount]=a1->phi(i);
+		pT[arrcount]=a1->pT(i);
+		r[arrcount]=0.2;
+		arrcount++;
 	}
-	int diplacement = mult->size();
 	for (int i = 0; i < a2->sizeJet(); ++i)
 	{
 	    mult->push_back(a2->multiplicity(i));
-	    y[i+diplacement]=a2->y(i);
-	    phi[i+diplacement]=a2->phi(i);
-	    pT[i+diplacement]=a2->pT(i);
-	    r[i+diplacement]=0.3;
+	    y[arrcount]=a2->y(i);
+	    phi[arrcount]=a2->phi(i);
+	    pT[arrcount]=a2->pT(i);
+	    rarrcount]=0.3;
+		arrcount++;
 	}
-	diplacement=mult->size();
 	for (int i = 0; i < a3->sizeJet(); ++i)
     {
         mult->push_back(a3->multiplicity(i));
-        y[i+diplacement]=a3->y(i);
-        phi[i+diplacement]=a3->phi(i);
-	    pT[i+diplacement]=a3->pT(i);
-        r[i+diplacement]=0.4;
+        y[arrcount]=a3->y(i);
+        phi[arrcount]=a3->phi(i);
+	    pT[arrcount]=a3->pT(i);
+        r[arrcount]=0.4;
+        arrcount++;
     }
 
 }
@@ -323,8 +325,8 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	vector<int> *id= new std::vector<int> ();
   	vector<int> *mother1= new std::vector<int>();
   	vector<int> *mother2= new std::vector<int>();
-  	vector<int> *daughter1= new std::vector<int>();
-  	vector<int> *daughter2= new std::vector<int>();
+  	//vector<int> *daughter1= new std::vector<int>();
+  	//vector<int> *daughter2= new std::vector<int>();
 
   	float pT[1000];
   	float eta[1000];
@@ -389,7 +391,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   				daughter2->clear();
 
   				/*fill the particle vectors*/
-  				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,daughter1,daughter2);
+  				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2);
   				/*fill the jet vectors*/
   				fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR);
   				/* fill the non vector*/
