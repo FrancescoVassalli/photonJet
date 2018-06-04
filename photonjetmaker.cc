@@ -249,29 +249,30 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,float* pT,float* eT,float* eta,float* phi,vector<int>* mother1,vector<int>* mother2){
+int fillTreebyEvent(Event e, int status,int id,float* pT,float* eT,float* eta,float* phi,int mother1,int mother2){
 	int arrcount=0;
 	for (int i = 0; i < e.size(); ++i)
 	{
 	  if(e[i].isFinal()){
-		status->push_back(e[i].status());
-  		id->push_back(e[i].id());
+		status[arrcount]=e[i].status();
+  		id[arrcount]=e[i].id();
   		pT[arrcount]=e[i].pT();
   		eT[arrcount]=e[i].eT();
   		eta[arrcount]=e[i].eta();
   		phi[arrcount]=e[i].phi();
-  		mother1->push_back(e[i].mother1());
-  		mother2->push_back(e[i].mother2());
+  		mother1[arrcount]=e[i].mother1();
+  		mother2[arrcount]=e[i].mother2();
   		arrcount++;
 	  }
 	}
+	return --arrcount;
 }
 
-void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, float* y, float* phi, float* pT,float* r){
+int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, float* phi, float* pT,float* r){
 	int arrcount=0;
 	for (int i = 0; i < a1->sizeJet(); ++i)
 	{
-		mult->push_back(a1->multiplicity(i));
+		mult[arrcount]=a1->multiplicity(i);
 		y[arrcount]=a1->y(i);
 		phi[arrcount]=a1->phi(i);
 		pT[arrcount]=a1->pT(i);
@@ -280,7 +281,7 @@ void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, f
 	}
 	for (int i = 0; i < a2->sizeJet(); ++i)
 	{
-	    mult->push_back(a2->multiplicity(i));
+	    mult[arrcount]=a2->multiplicity(i);
 	    y[arrcount]=a2->y(i);
 	    phi[arrcount]=a2->phi(i);
 	    pT[arrcount]=a2->pT(i);
@@ -289,13 +290,14 @@ void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, f
 	}
 	for (int i = 0; i < a3->sizeJet(); ++i)
     {
-        mult->push_back(a3->multiplicity(i));
+        mult[arrcount]=a3->multiplicity(i);
         y[arrcount]=a3->y(i);
         phi[arrcount]=a3->phi(i);
 	    pT[arrcount]=a3->pT(i);
         r[arrcount]=0.4;
         arrcount++;
     }
+    return --arrcount;
 
 }
 void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
@@ -352,11 +354,12 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("jetmult",&jetmult,"jetmult[200]/I");
   	interestXj->Branch("jetR",jetR,"jetR[200]/F");
   	/* varibles for the TTree*/
-  	int position,end;
+  	int position,end,jetend;
   	bool jetquark;
   	interestXj->Branch("photonPosition",&position);
   	interestXj->Branch("direct", &jetquark);
   	interestXj->Branch("end",&end);
+  	interestXj->Branch("jetend",&jetend)
   	/* generation loop*/
     for (int iEvent = 0; iEvent < nEvents; ++iEvent)
   	{
@@ -383,9 +386,9 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     			/*fill the tree*/ 
 
   				/*fill the particle vectors*/
-  				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,end);
+  				end=fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2);
   				/*fill the jet vectors*/
-  				fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR,end);
+  				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR);
   				/* fill the non vector*/
   				position=finalcount++;
   				jetquark=isDirect(pythiaengine.info.code());
