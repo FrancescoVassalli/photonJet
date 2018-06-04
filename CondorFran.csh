@@ -1,18 +1,19 @@
+#!/bin/csh 
 #This is the condor shell script for 10GeV photons, note pTHatMin should be 5GeV
 
-#!/bin/csh                                                                                                                                            
+                                                                                                                                          
 
-source /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet.cshrc
+source /phenix/u/vassalli/.cshrc
 
 @ p = $1
 
                 
-set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli"
+set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli/"
 
-./photonjetmaker XjPhi_pT10_${1} 5 10
+./photonjetmaker XjPhi_pT5_${1} 5 10
 
 
-mv XjPhi* $DESTINATION
-
+cp XjPhi_pT5_${1} $DESTINATION
+rm XjPhi_pT5_${1}
 exit 0
 

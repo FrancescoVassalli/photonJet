@@ -15,10 +15,11 @@ using namespace std;
 #include "TRandom3.h"
 #include "TMath.h"
 #include "Utils.C" 
+#include "TROOT.h"
+
 #ifdef __MAKECINT__
 #pragma link C++ class vector<float>+;
 #endif
-//gROOT->ProcessLine("#include<vector>");
 
 //%ROOT_COMMON=-L$(ROOTSYS)/lib -wl,-rpath,$(ROOTSYS)/lib
 
@@ -248,31 +249,52 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,vector<float>* pT,vector<float>* eT,vector<float>* eta,vector<float>* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2){
+void fillTreebyEvent(Event e, vector<int>* status,vector<int>* id,float* pT,float* eT,float* eta,float* phi,vector<int>* mother1,vector<int>* mother2,vector<int>* daughter1,vector<int>* daughter2){
 	for (int i = 0; i < e.size(); ++i)
 	{
+	  if(e[i].isFinal()){
 		status->push_back(e[i].status());
   		id->push_back(e[i].id());
-  		pT->push_back(e[i].pT());
-  		eT->push_back(e[i].eT());
-  		eta->push_back(e[i].eta());
-  		phi->push_back(e[i].phi());
+  		pT[i]=e[i].pT();
+  		eT[i]=e[i].eT();
+  		eta[i]=e[i].eta();
+  		phi[i]=e[i].phi();
   		mother1->push_back(e[i].mother1());
   		mother2->push_back(e[i].mother2());
   		daughter1->push_back(e[i].daughter1());
   		daughter2->push_back(e[i].daughter2());
+	  }
 	}
 }
 
-void fillTreebySlowJet(SlowJet* antikT, float R,vector<int>* mult, vector<float>* y, vector<float>* phi, vector<float>* pT,vector<float>* r){
-	for (int i = 0; i < antikT->sizeJet(); ++i)
+void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, float* y, float* phi, float* pT,float* r){
+	for (int i = 0; i < a1->sizeJet(); ++i)
 	{
-		mult->push_back(antikT->multiplicity(i));
-		y->push_back(antikT->y(i));
-		phi->push_back(antikT->phi(i));
-		pT->push_back(antikT->pT(i));
-		r->push_back(R);
+		mult->push_back(a1->multiplicity(i));
+		y[i]=a1->y(i);
+		phi[i]=a1->phi(i);
+		pT[i]=a1->pT(i);
+		r[i]=0.2;
 	}
+	int diplacement = mult->size();
+	for (int i = 0; i < a2->sizeJet(); ++i)
+	{
+	    mult->push_back(a2->multiplicity(i));
+	    y[i+diplacement]=a2->y(i);
+	    phi[i+diplacement]=a2->phi(i);
+	    pT[i+diplacement]=a2->pT(i);
+	    r[i+diplacement]=0.3;
+	}
+	diplacement=mult->size();
+	for (int i = 0; i < a3->sizeJet(); ++i)
+    {
+        mult->push_back(a3->multiplicity(i));
+        y[i+diplacement]=a3->y(i);
+        phi[i+diplacement]=a3->phi(i);
+	    pT[i+diplacement]=a3->pT(i);
+        r[i+diplacement]=0.4;
+    }
+
 }
 void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
 	string hepName = filename+".dat";
@@ -286,7 +308,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     Pythia pythiaengine;
     pythiaengine.readString("Beams:eCM = 200.");
   	pythiaengine.readString("promptphoton:all = on");
- 	  pythiaengine.readString("HardQCD:all = on");
+ 	pythiaengine.readString("HardQCD:all = on");
   	pythiaengine.readString("Random::setSeed = on");
   	pythiaengine.readString("Random::seed =0");
   	pTHat = "PhaseSpace:pTHatMin = "+pTHat+".";
@@ -299,35 +321,38 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	/*vectors for the TTree*/
   	vector<int> *status= new std::vector<int>();
   	vector<int> *id= new std::vector<int> ();
-  	vector<float> *pT= new std::vector<float>();
-  	vector<float> *eta= new std::vector<float>();
-  	vector<float> *phi= new std::vector<float>();
   	vector<int> *mother1= new std::vector<int>();
   	vector<int> *mother2= new std::vector<int>();
   	vector<int> *daughter1= new std::vector<int>();
   	vector<int> *daughter2= new std::vector<int>();
-  	std::vector<float> *eT= new std::vector<float>();
-  	std::vector<float> *jety= new std::vector<float>();
-  	std::vector<float> *jetphi= new std::vector<float>();
-  	std::vector<float> *jetpT= new std::vector<float>();
+
+  	float pT[1000];
+  	float eta[1000];
+  	float phi[1000];
+	float eT[1000];
+  	
   	std::vector<int> *jetmult= new std::vector<int>();
-  	std::vector<float> *jetR= new std::vector<float>();
+
+  	float jety[200];
+  	float jetphi[200];
+  	float jetpT[200];
+  	float jetR[200];
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
   	interestXj->Branch("ID",&id);
-  	interestXj->Branch("pT",&pT);
-  	interestXj->Branch("eta",&eta);
-  	interestXj->Branch("phi",&phi);
+  	interestXj->Branch("pT",pT,"pT[1000]/F");
+  	interestXj->Branch("eta",eta,"eta[1000]/F");
+  	interestXj->Branch("phi",phi,"phi[1000]/F");
   	interestXj->Branch("mother1",&mother1);
   	interestXj->Branch("mother2",&mother2);
   	interestXj->Branch("daughter1",&daughter1);
   	interestXj->Branch("daughter2",&daughter2);
-  	interestXj->Branch("particleET",&eT);
-  	interestXj->Branch("jety",&jety);
-  	interestXj->Branch("jetphi",&jetphi);
-  	interestXj->Branch("jetpT", &jetpT);
+  	interestXj->Branch("particleET",eT,"eT[1000]/F");
+  	interestXj->Branch("jety",jety,"jety[200]/F");
+  	interestXj->Branch("jetphi",jetphi,"jetphi[200]/F");
+  	interestXj->Branch("jetpT", jetpT,"jetpT[200]/F");
   	interestXj->Branch("jetmult",&jetmult);
-  	interestXj->Branch("jetR",&jetR);
+  	interestXj->Branch("jetR",jetR,"jetR[200]/F");
   	/* varibles for the TTree*/
   	int position;
   	bool jetquark;
@@ -358,25 +383,15 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     			/*fill the tree*/ 
     			status->clear();
   				id->clear();
-  				pT ->clear();
-  				eta->clear() ;
-  				phi ->clear();
   				mother1->clear();
   				mother2->clear();
   				daughter1->clear();
   				daughter2->clear();
-  				eT->clear();
-  				jety ->clear();
-  				jetphi->clear() ;
-  				jetpT->clear() ;
-  				jetmult->clear() ;
-  				jetR ->clear();
+
   				/*fill the particle vectors*/
   				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,daughter1,daughter2);
   				/*fill the jet vectors*/
-  				fillTreebySlowJet(antikT2,.2,jetmult,jety,jetphi,jetpT,jetR);
-  				fillTreebySlowJet(antikT2,.3,jetmult,jety,jetphi,jetpT,jetR);
-  				fillTreebySlowJet(antikT2,.4,jetmult,jety,jetphi,jetpT,jetR);
+  				fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR);
   				/* fill the non vector*/
   				position=i;
   				jetquark=isDirect(pythiaengine.info.code());
@@ -385,6 +400,9 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     		}
     	}
   	}
+  	delete antikT2;
+  	delete antikT3;
+  	delete antikT4;
   	interestXj->Write();
   	f->Write();
   	f->Close();
@@ -395,7 +413,7 @@ int main(int argc, char const *argv[] )
 	string fileOut = string(argv[1]);
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
-	int nEvents = 10000;
+	int nEvents = 50000;
 	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
 }

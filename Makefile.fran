@@ -1,5 +1,5 @@
 SHELL=/usr/bin/env bash
-CXX_COMMON=-O2  -pedantic -W -fPIC -std=c++11
+CXX_COMMON=-O2  -pedantic -W -fPIC
 PREFIX_INCLUDE=/phenix/u/vassalli/pythia8230/include
 PREFIX_LIB=/phenix/u/vassalli/pythia8230/lib
 CXX_COMMON:=-I$(PREFIX_INCLUDE) $(CXX_COMMON)
@@ -10,4 +10,5 @@ HEPMC2_LIB=/direct/phenix+u/vassalli/HEPBuild/lib
 all: photonjetmaker
 
 photonjetmaker: photonjetmaker.cc $(PREFIX_LIB)/libpythia8.a
-		$(CXX) $< -o photonjetmaker -I$(HEPMC2_INCLUDE) $(CXX_COMMON) -L$(HEPMC2_LIB) -Wl,-rpath,$(HEPMC2_LIB) -lHepMC `root-config --libs --cflags`
+		$(CXX) $< -o photonjetmaker -std=c++11 -I$(HEPMC2_INCLUDE) $(CXX_COMMON) -\
+L$(HEPMC2_LIB) -Wl,-rpath,$(HEPMC2_LIB) -lHepMC `root-config --libs --cflags`
