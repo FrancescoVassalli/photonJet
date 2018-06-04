@@ -1,10 +1,9 @@
 using namespace std;
 
-//#include "Utils.C"
-#include "CollisionClasses.C"
+#include "Utils.C"
+//#include "CollisionClasses.C"
 //#include "XjPhi.C"
 #include <sstream>
-#include "Utils.C"
 
 const double PI = TMath::Pi();
 bool namein(string test, std::vector<string> v);
@@ -146,9 +145,9 @@ bool namein(string test, std::vector<string> v){
 	tl->Draw();
 }*/
 
-Jet matchJet(Photon p, queue<Jet> jQ){
+/*Jet matchJet(Photon p, queue<Jet> jQ){
 
-}
+}*/
 
 queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, int SIZE){
 	queue<Jet> r;
@@ -166,26 +165,29 @@ queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, flo
 }
 
 queue<Jet> getRJets(float r,queue<Jet> q){
-	queue<Jet> r;
+	queue<Jet> rQ;
 	int count=0;
 	while(!q.empty()){
 		if (q.front().getr()==r)
 		{
-			r.push(q.front());
+			rQ.push(q.front());
 			count++;
 		}
 	}
-	cout<<count<<'\n';
-	return r;
+	if (count!=0)
+	{
+		cout<<count<<'\n';
+	}	
+	return rQ;
 }
 
 queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, int SIZE){
-	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,mult));
+	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,SIZE));
 }
 
 void plot1D(TChain *tree,queue<Photon> photonQ){
 	//could also turn them all off and turn the ones I want on
-	vector<string> interestBranches={"jetphi","jetpT","jety","jetR"};
+	vector<string> interestBranches={"jetphi","jetpT","jety","jetR","jetmult"};
 	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
 	{
@@ -203,7 +205,7 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 	tree->SetBranchAddress("jetpT",&jetpT);
 	tree->SetBranchAddress("jety",&jety);
 	tree->SetBranchAddress("jetR",&jetR);
-	tree->SetBranchAddress("mult",&mult);
+	tree->SetBranchAddress("jetmult",&mult);
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
 		tree->GetEntry(i);
@@ -283,12 +285,12 @@ void xjgpT(TChain* dirc, TChain *frag){
 
 queue<Photon> makePhotons(TChain *chain){
 	vector<string> interestBranches={"photonPosition","eT","phi","eta","Status","direct"};
-	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
+	TObjArray* branches = (TObjArray*)(chain->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
 	{
 		if (!namein(string(loopBranch->GetName()),interestBranches))
 		{
-			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
+			chain->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
 		}
 	}
 	float eT[300];

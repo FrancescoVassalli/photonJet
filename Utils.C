@@ -3,19 +3,6 @@
 #include <iostream>
 
 template<class T>
-T quadrature(T d1, T d2){
-	return TMath::Sqrt((double)d1*d1+d2*d2);
-}
-
-template<class T>
-T quadrature(T* a, int SIZE){
-	T* b = clone(a);
-	arrayMultiply(b,b,SIZE);
-	T r = sum(b,SIZE);
-	return TMath::Sqrt(r);
-}
-
-template<class T>
 void clear( std::queue<T> &q )
 {
    std::queue<T> empty;
@@ -23,7 +10,8 @@ void clear( std::queue<T> &q )
 }
 
 float deltaPhi(float i1, float i2);
-
+#ifndef Scalar_h
+#define Scalar_h
 using namespace std;
 class Scalar
 {
@@ -167,9 +155,25 @@ public:
 
 	float value;
 	float uncertainty;
+protected:
+	template<class T>
+T quadrature(T d1, T d2){
+	return TMath::Sqrt((double)d1*d1+d2*d2);
+}
+
+template<class T>
+T quadrature(T* a, int SIZE){
+	T* b = clone(a);
+	arrayMultiply(b,b,SIZE);
+	T r = sum(b,SIZE);
+	return TMath::Sqrt(r);
+}
 	
 };
+#endif
 
+#ifndef Angle_h
+#define Angle_h
 //not sure of all the inheritence rules on virtualization/abstracttion want it to do all the same things as a Scalar but check for <PI b4 all the returns
 class Angle : public Scalar //all the members of Scalar become members of Angle with equal scope
 {
@@ -321,13 +325,18 @@ private:
 		if(value<0) value+=2*TMath::Pi();
 	}
 };
+#endif
 
+#ifndef Point_h
+#define Point_h
 struct Point
 {
 	Scalar x;
 	Scalar y;
 };
-
+#endif
+#ifndef Parton_h
+#define Parton_h
 class Parton
 {
 public:
@@ -355,6 +364,7 @@ private:
 		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
 	}
 };
+#endif
 
 template<class T>
 T bigger(T x, T y){
@@ -388,7 +398,8 @@ bool isDirect(int i)
     return false;
   }
 }
-
+#ifndef myParticle_h
+#define myParticle_h
 class myParticle
 {
 public:
@@ -419,7 +430,9 @@ private:
 	float phi;
 	float y;
 };
-
+#endif
+#ifndef Photon_h
+#define Photon_h
 class Photon
 {
 public:
@@ -566,7 +579,9 @@ private:
 		return isoEt;
 	}
 };
-
+#endif
+#ifndef Jet_h
+#define Jet_h
 class Jet
 {
 public:
@@ -654,7 +669,9 @@ private:
 	Parton parton;
 	
 };
-
+#endif
+#ifndef XjPhi_h
+#define XjPhi_h
 class XjPhi
 {
 public:
@@ -691,6 +708,7 @@ private:
 	Scalar xj;
 	Scalar phi;
 };
+#endif
 
 float** qXjPhiTo2DArray(queue<XjPhi> in){
 	float** out = new float*[2];
