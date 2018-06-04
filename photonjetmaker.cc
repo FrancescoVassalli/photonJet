@@ -372,6 +372,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
 
     	for (int i = 0; i < pythiaengine.event.size(); ++i)
     	{
+    		int finalcount=0;
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
           		HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
@@ -396,7 +397,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   				/*fill the jet vectors*/
   				fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR);
   				/* fill the non vector*/
-  				position=i;
+  				position=finalcount++;
   				jetquark=isDirect(pythiaengine.info.code());
   				interestXj->Fill();
      			break;
