@@ -284,7 +284,7 @@ void fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,vector<int>* mult, f
 	    y[arrcount]=a2->y(i);
 	    phi[arrcount]=a2->phi(i);
 	    pT[arrcount]=a2->pT(i);
-	    rarrcount]=0.3;
+	    r[arrcount]=0.3;
 		arrcount++;
 	}
 	for (int i = 0; i < a3->sizeJet(); ++i)
@@ -328,10 +328,10 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	//vector<int> *daughter1= new std::vector<int>();
   	//vector<int> *daughter2= new std::vector<int>();
 
-  	float pT[1000];
-  	float eta[1000];
-  	float phi[1000];
-	float eT[1000];
+  	float pT[300];
+  	float eta[300];
+  	float phi[300];
+	float eT[300];
   	
   	std::vector<int> *jetmult= new std::vector<int>();
 
@@ -342,14 +342,14 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	/* setting up the vector branches*/
   	interestXj->Branch("Status",&status);
   	interestXj->Branch("ID",&id);
-  	interestXj->Branch("pT",pT,"pT[1000]/F");
-  	interestXj->Branch("eta",eta,"eta[1000]/F");
-  	interestXj->Branch("phi",phi,"phi[1000]/F");
+  	interestXj->Branch("pT",pT,"pT[300]/F");
+  	interestXj->Branch("eta",eta,"eta[300]/F");
+  	interestXj->Branch("phi",phi,"phi[300]/F");
   	interestXj->Branch("mother1",&mother1);
   	interestXj->Branch("mother2",&mother2);
-  	interestXj->Branch("daughter1",&daughter1);
-  	interestXj->Branch("daughter2",&daughter2);
-  	interestXj->Branch("particleET",eT,"eT[1000]/F");
+  	//interestXj->Branch("daughter1",&daughter1);
+  	//interestXj->Branch("daughter2",&daughter2);
+  	interestXj->Branch("particleET",eT,"eT[300]/F");
   	interestXj->Branch("jety",jety,"jety[200]/F");
   	interestXj->Branch("jetphi",jetphi,"jetphi[200]/F");
   	interestXj->Branch("jetpT", jetpT,"jetpT[200]/F");
@@ -388,8 +388,8 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   				id->clear();
   				mother1->clear();
   				mother2->clear();
-  				daughter1->clear();
-  				daughter2->clear();
+  				//daughter1->clear();
+  				//daughter2->clear();
 
   				/*fill the particle vectors*/
   				fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2);
@@ -416,7 +416,7 @@ int main(int argc, char const *argv[] )
 	string fileOut = string(argv[1]);
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
-	int nEvents = 50000;
+	int nEvents = 500000;
 	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
 }

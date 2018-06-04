@@ -6,7 +6,7 @@ Universe        = vanilla
 Notification    = Never
 
 # The executable we want to run.
-Executable   =  /direct/phenix+u/vassalli/photonJet/CondorFran2.csh
+Executable   =  /direct/phenix+u/vassalli/photonJet/CondorFran4.csh
 
 # The argument to pass to the executable.
 Arguments       = $(Process) 
@@ -34,13 +34,13 @@ Initialdir   = /direct/phenix+u/vassalli/photonJet
 Input           = /dev/null
 
 # The job’s stdout is sent to this file.
-Output       =/direct/phenix+u/vassalli/condor_logs2/out.$(Process)
+Output       =/direct/phenix+u/vassalli/condor_logs4/out.$(Process)
 
 # The job’s stderr is sent to this file.
-Error        =/direct/phenix+u/vassalli/condor_logs2/err.$(Process))
+Error        =/direct/phenix+u/vassalli/condor_logs4/err.$(Process))
 
 # The condor log file for this job, useful when debuggin
-Log          =/direct/phenix+u/vassalli/condor_logs2/log.$(Process)
+Log          =/direct/phenix+u/vassalli/condor_logs4/log.$(Process)
 
 # Email address to send notification to.
 Notify_user     = frva5829@colorado.edu
