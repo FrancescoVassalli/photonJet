@@ -304,7 +304,7 @@ void xjgpT(TChain* dirc, TChain *frag){
 }
 
 queue<Photon> makePhotons(TChain *chain){
-	vector<string> interestBranches={"photonPosition","eT","phi","eta","Status","direct"};
+	vector<string> interestBranches={"photonPosition","eT","phi","eta","end","direct"};
 	TObjArray* branches = (TObjArray*)(chain->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
 	{
@@ -318,12 +318,12 @@ queue<Photon> makePhotons(TChain *chain){
 	float eta[300];
 	int photonPosition;
 	bool direct;
-	std::vector<int> *status=new vector<int>();
+	int end;
 	chain->SetBranchAddress("eT",&eT);
 	chain->SetBranchAddress("phi",&phi);
 	chain->SetBranchAddress("eta",&eta);
 	chain->SetBranchAddress("photonPosition",&photonPosition);
-	chain->SetBranchAddress("Status",&status);
+	chain->SetBranchAddress("end",&end);
 	chain->SetBranchAddress("direct",&direct);
 	queue<Photon> r;
 	for (int i = 0; i < chain->GetEntries(); ++i)
