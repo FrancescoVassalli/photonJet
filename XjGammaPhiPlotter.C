@@ -93,7 +93,7 @@ bool namein(string test, std::vector<string> v){
 	return in;
 }
 
-void plot1D(TChain *tree, queue<Photon> ){
+/*void plot1D(TChain *tree){
 	//could also turn them all off and turn the ones I want on
 	vector<string> interestBranches={"xj","direct","isoEt"};
 	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
@@ -144,6 +144,107 @@ void plot1D(TChain *tree, queue<Photon> ){
 	plot->Draw("p");
 	other->Draw("same p");
 	tl->Draw();
+}*/
+
+Jet matchJet(Photon p, queue<Jet> jQ){
+
+}
+
+queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, int SIZE){
+	queue<Jet> r;
+	
+	for (int i = 0; i < SIZE; ++i)
+	{
+		if (TMath::Abs(jetphi[i]-photonPhi)>7.0*TMath::Pi()/8.0)
+		{
+			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i]));
+			
+		}
+	}
+
+	return r;
+}
+
+queue<Jet> getRJets(float r,queue<Jet> q){
+	queue<Jet> r;
+	int count=0;
+	while(!q.empty()){
+		if (q.front().getr()==r)
+		{
+			r.push(q.front());
+			count++;
+		}
+	}
+	cout<<count<<'\n';
+	return r;
+}
+
+queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, int SIZE){
+	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,mult));
+}
+
+void plot1D(TChain *tree,queue<Photon> photonQ){
+	//could also turn them all off and turn the ones I want on
+	vector<string> interestBranches={"jetphi","jetpT","jety","jetR"};
+	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
+	for (TObject* loopBranch : *branches)
+	{
+		if (!namein(string(loopBranch->GetName()),interestBranches))
+		{
+			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
+		}
+	}
+	float jetphi[200];
+	float jetpT[200];
+	float jety[200];
+	float jetR[200];
+	std::vector<int> *mult=new vector<int>();
+	tree->SetBranchAddress("jetphi",&jetphi);
+	tree->SetBranchAddress("jetpT",&jetpT);
+	tree->SetBranchAddress("jety",&jety);
+	tree->SetBranchAddress("jetR",&jetR);
+	tree->SetBranchAddress("mult",&mult);
+	for (int i = 0; i < tree->GetEntries(); ++i)
+	{
+		tree->GetEntry(i);
+		getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
+		photonQ.pop();
+	}
+	/*TCanvas *tc = new TCanvas();
+	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
+	const int binL=19;
+	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
+	TH1F *other = new TH1F("plotb","",binL,bins);
+	for (int i = 0; i < tree->GetEntries(); ++i)
+	{
+		tree->GetEntry(i);
+		if (isoET<3) //ET cut
+		{
+			if (direct) //direct vs frag
+			{
+				plot->Fill(xj);
+			}
+			else{
+				other->Fill(xj);
+			}
+		}
+	}
+	cout<<other->Integral()<<endl;
+	cout<<plot->Integral()<<endl;
+	plot->Scale(1/plot->Integral(),"width");
+	other->Scale(1/other->Integral(),"width");
+	TLegend *tl =new TLegend(.1,.6,.4,.9);
+	tl->AddEntry(plot,"direct","p");
+	tl->AddEntry(other,"frag","p");
+	axisTitles(plot,"Xj","");
+	axisTitleSize(plot,.06);
+	axisTitleOffset(plot,.7);
+	smallBorders();
+	makeDifferent(other,1);
+	doubleZero(plot,1.6,1.9);
+	plot->Draw("p");
+	other->Draw("same p");
+	tl->Draw();*/
 }
 
 void plotMonoJets(TChain* gamma_tree){
@@ -206,16 +307,15 @@ queue<Photon> makePhotons(TChain *chain){
 	for (int i = 0; i < chain->GetEntries(); ++i)
 	{
 		chain->GetEntry(i);
-		Photon pTemp(status->size(),photonPosition,eT,phi,eta,direct);
-		r.push(pTemp);
+		r.push(Photon(status->size(),photonPosition,eT,phi,eta,direct));
 	}
 	return r;
 }
 
 void XjGammaPhiPlotter(){
-	string filename = "XjPhi";
+	string filename = "XjPhi_pT15_";
 	string extension = ".root";
-	int filecount=90;
+	int filecount=50;
 	TChain *all = new TChain("interest");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
@@ -224,7 +324,8 @@ void XjGammaPhiPlotter(){
 		all->Add(temp.c_str());
 	}
 	//plotXjPhi(dirc,frag);
-	plot1D(all);
+	queue<Photon> photonQ = makePhotons(all);
+	plot1D(all,photonQ);
 	//xjgpT(dirc,frag);
 	//plot4Bars(dirc,frag);
 	//plotFlavpT(dirc,frag);
