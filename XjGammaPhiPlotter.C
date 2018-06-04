@@ -4,6 +4,11 @@ using namespace std;
 //#include "CollisionClasses.C"
 //#include "XjPhi.C"
 #include <sstream>
+#include <iostream>
+
+#ifdef __MAKECINT__
+#pragma link C++ class vector<int>+;
+#endif
 
 const double PI = TMath::Pi();
 bool namein(string test, std::vector<string> v);
@@ -176,8 +181,9 @@ queue<Jet> getRJets(float r,queue<Jet> q){
 	}
 	if (count!=0)
 	{
-		cout<<count<<'\n';
-	}	
+		//cout<<count<<'\n';
+	}
+	//cout<<"done"<<endl;	
 	return rQ;
 }
 
@@ -200,16 +206,30 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 	float jetpT[200];
 	float jety[200];
 	float jetR[200];
-	std::vector<int> *mult=new vector<int>();
+	std::vector<int> **mult=NULL;
 	tree->SetBranchAddress("jetphi",&jetphi);
 	tree->SetBranchAddress("jetpT",&jetpT);
 	tree->SetBranchAddress("jety",&jety);
 	tree->SetBranchAddress("jetR",&jetR);
 	tree->SetBranchAddress("jetmult",&mult);
+
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
+		//cout<<"Iso:"<<photonQ.front().getIsoEt()<<'\n';
+		if (photonQ.front().getIsoEt()>3){
+			photonQ.pop();
+			continue;
+		}
 		tree->GetEntry(i);
-		getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
+		cout<<"////////NEW\\\\\\\\\\\\\\\\\\"<<(*mult)->size()<<'\n';
+		for (int j = 0; j < (*mult)->size(); ++j)
+		{
+			/*if(jetR[j]==.4){
+				cout<<jetpT[j]<<','<<jetphi[j]<<'\n';
+			}*/
+			cout<<jetR[j]<<'\n';
+		}
+		//getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
 		photonQ.pop();
 	}
 	/*TCanvas *tc = new TCanvas();
@@ -317,7 +337,7 @@ queue<Photon> makePhotons(TChain *chain){
 void XjGammaPhiPlotter(){
 	string filename = "XjPhi_pT15_";
 	string extension = ".root";
-	int filecount=50;
+	int filecount=5;
 	TChain *all = new TChain("interest");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
@@ -332,4 +352,5 @@ void XjGammaPhiPlotter(){
 	//plot4Bars(dirc,frag);
 	//plotFlavpT(dirc,frag);
 	//plotMonoJets(data);
+	cout<<"end"<<endl;
 }	
