@@ -303,6 +303,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* interestXj = new TTree("interest","interest");
+  	interestXj->SetAutoSave(100);
   	using namespace HepMC;
     HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
     HepMC::IO_GenEvent ascii_io(hepName, std::ios::out); //file where HepMC events will be stored.
