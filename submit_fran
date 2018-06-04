@@ -24,7 +24,7 @@ Rank            = CPU_Speed
 
 # Jobs with higher numerical priority will run before jobs
 # with lower numerical priority (-20 to 20).
-Priority        = +19
+Priority        = +18
 
 # Used to give jobs a directory with respect to file input
 # and output.
