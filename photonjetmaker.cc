@@ -249,7 +249,7 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-int fillTreebyEvent(Event e, int status,int id,float* pT,float* eT,float* eta,float* phi,int mother1,int mother2){
+int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,float* phi,int* mother1,int* mother2){
 	int arrcount=0;
 	for (int i = 0; i < e.size(); ++i)
 	{
