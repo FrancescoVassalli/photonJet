@@ -496,6 +496,7 @@ public:
 		this->phi=Scalar(phi[position]);
 		this->eta=Scalar(eta[position]);
 		this->direct=direct;
+		findIsoEt(phi,eta,eT,SIZE);
 	}
 	~Photon(){}
 	Scalar getpT(){

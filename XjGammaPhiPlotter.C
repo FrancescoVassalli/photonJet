@@ -4,6 +4,11 @@ using namespace std;
 //#include "CollisionClasses.C"
 //#include "XjPhi.C"
 #include <sstream>
+#include <iostream>
+
+#ifdef __MAKECINT__
+#pragma link C++ class vector<int>+;
+#endif
 
 const double PI = TMath::Pi();
 bool namein(string test, std::vector<string> v);
@@ -176,8 +181,9 @@ queue<Jet> getRJets(float r,queue<Jet> q){
 	}
 	if (count!=0)
 	{
-		cout<<count<<'\n';
-	}	
+		//cout<<count<<'\n';
+	}
+	//cout<<"done"<<endl;	
 	return rQ;
 }
 
@@ -187,7 +193,7 @@ queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* je
 
 void plot1D(TChain *tree,queue<Photon> photonQ){
 	//could also turn them all off and turn the ones I want on
-	vector<string> interestBranches={"jetphi","jetpT","jety","jetR","jetmult"};
+	vector<string> interestBranches={"jetphi","jetpT","jety","jetR","jetend"};
 	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
 	{
@@ -200,16 +206,30 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 	float jetpT[200];
 	float jety[200];
 	float jetR[200];
-	std::vector<int> *mult=new vector<int>();
+	int jetend;
 	tree->SetBranchAddress("jetphi",&jetphi);
 	tree->SetBranchAddress("jetpT",&jetpT);
 	tree->SetBranchAddress("jety",&jety);
 	tree->SetBranchAddress("jetR",&jetR);
-	tree->SetBranchAddress("jetmult",&mult);
+	tree->SetBranchAddress("jetend",&jetend);
+
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
+		//cout<<"Iso:"<<photonQ.front().getIsoEt()<<'\n';
+		if (photonQ.front().getIsoEt()>3){
+			photonQ.pop();
+			continue;
+		}
 		tree->GetEntry(i);
-		getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
+		//cout<<"////////NEW\\\\\\\\\\\\\\\\\\"<<(*mult)->size()<<'\n';
+		for (int j = 0; j < jetend; ++j)
+		{
+			/*if(jetR[j]==.4){
+				cout<<jetpT[j]<<','<<jetphi[j]<<'\n';
+			}*/
+			cout<<jetR[j]<<'\n';
+		}
+		//getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
 		photonQ.pop();
 	}
 	/*TCanvas *tc = new TCanvas();
@@ -284,7 +304,7 @@ void xjgpT(TChain* dirc, TChain *frag){
 }
 
 queue<Photon> makePhotons(TChain *chain){
-	vector<string> interestBranches={"photonPosition","eT","phi","eta","Status","direct"};
+	vector<string> interestBranches={"photonPosition","eT","phi","eta","end","direct"};
 	TObjArray* branches = (TObjArray*)(chain->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
 	{
@@ -298,18 +318,18 @@ queue<Photon> makePhotons(TChain *chain){
 	float eta[300];
 	int photonPosition;
 	bool direct;
-	std::vector<int> *status=new vector<int>();
+	int end;
 	chain->SetBranchAddress("eT",&eT);
 	chain->SetBranchAddress("phi",&phi);
 	chain->SetBranchAddress("eta",&eta);
 	chain->SetBranchAddress("photonPosition",&photonPosition);
-	chain->SetBranchAddress("Status",&status);
+	chain->SetBranchAddress("end",&end);
 	chain->SetBranchAddress("direct",&direct);
 	queue<Photon> r;
 	for (int i = 0; i < chain->GetEntries(); ++i)
 	{
 		chain->GetEntry(i);
-		r.push(Photon(status->size(),photonPosition,eT,phi,eta,direct));
+		r.push(Photon(end,photonPosition,eT,phi,eta,direct));
 	}
 	return r;
 }
@@ -317,7 +337,7 @@ queue<Photon> makePhotons(TChain *chain){
 void XjGammaPhiPlotter(){
 	string filename = "XjPhi_pT15_";
 	string extension = ".root";
-	int filecount=50;
+	int filecount=5;
 	TChain *all = new TChain("interest");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
@@ -332,4 +352,5 @@ void XjGammaPhiPlotter(){
 	//plot4Bars(dirc,frag);
 	//plotFlavpT(dirc,frag);
 	//plotMonoJets(data);
+	cout<<"end"<<endl;
 }	
