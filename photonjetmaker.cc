@@ -405,8 +405,10 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	delete antikT3;
   	delete antikT4;
   	interestXj->Write();
-  	f->Write();
+  	//f->Write();
   	f->Close();
+  	delete f;
+  	f=NULL;
 }
 
 int main(int argc, char const *argv[] )

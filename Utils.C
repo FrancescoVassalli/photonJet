@@ -490,8 +490,18 @@ public:
 		this->eta= Scalar((float)_eta);
 		findIsoEt(all);
 	}
-	Photon(int SIZE, int position, float* eT, float* phi, float* eta, bool direct){
+	Photon(int SIZE, int position, float* eT, float* phi, float* eta, bool direct,float eTCone){
+		etCone=eTCone;
 		this->position=position;
+		pT=Scalar(eT[position]);
+		this->phi=Scalar(phi[position]);
+		this->eta=Scalar(eta[position]);
+		this->direct=direct;
+		findIsoEt(phi,eta,eT,SIZE);
+	}
+	Photon(int SIZE, int* id, float* eT, float* phi, float* eta, bool direct,float eTCone,float eTCut){
+		etCone=eTCone;
+		findPosition(SIZE,id,eT,eTCut);
 		pT=Scalar(eT[position]);
 		this->phi=Scalar(phi[position]);
 		this->eta=Scalar(eta[position]);
@@ -578,6 +588,19 @@ private:
 			}
 		}
 		return isoEt;
+	}
+	inline bool isPhoton(int id){
+		return id==22;
+	}
+	int findPosition(int SIZE, int* id, float* et,float eTCut){
+		for (int i = 0; i < SIZE; ++i)
+		{
+			if (isPhoton(id[i])&&et[i]>eTCut)
+			{
+				position=i;
+				return position;
+			}
+		}
 	}
 };
 #endif
