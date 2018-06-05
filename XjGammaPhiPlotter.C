@@ -236,10 +236,10 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 	{
 		if (xjPhiQ.front().getPhoton().isDirect()) //direct vs frag
 		{
-			plot->Fill(xjPhiQ.front().getXj().value);
+			other->Fill(xjPhiQ.front().getXj().value);
 		}
 		else{
-			other->Fill(xjPhiQ.front().getXj().value);
+			plot->Fill(xjPhiQ.front().getXj().value);
 		}
 		xjPhiQ.pop();
 	}
@@ -248,8 +248,8 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 	plot->Scale(1/plot->Integral(),"width");
 	other->Scale(1/other->Integral(),"width");
 	TLegend *tl =new TLegend(.1,.6,.4,.9);
-	tl->AddEntry(plot,"direct","p");
-	tl->AddEntry(other,"frag","p");
+	tl->AddEntry(plot,"frag","p");
+	tl->AddEntry(other,"direct","p");
 	axisTitles(plot,"Xj","");
 	axisTitleSize(plot,.06);
 	axisTitleOffset(plot,.7);

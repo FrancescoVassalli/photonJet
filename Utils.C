@@ -587,6 +587,7 @@ private:
 				isoEt+=eT[i];
 			}
 		}
+		isoEt-=pT.value;
 		return isoEt;
 	}
 	inline bool isPhoton(int id){
@@ -711,6 +712,8 @@ public:
 	XjPhi(Photon p, Jet j){
 		xj=j.getpT()/p.getpT();
 		phi = Scalar(deltaPhi(p.getphi().value,j.getphi().value));
+		photon=p;
+		jet=j;
 	}
 	XjPhi(Scalar xj, Scalar phi){
 		this->xj=xj;
@@ -724,6 +727,12 @@ public:
 	Scalar getphi(){
 		return phi;
 	}
+	Photon getPhoton(){
+		return photon;
+	}
+	Jet getJet(){
+		return jet;
+	}
 	friend ostream& operator<<(ostream& os, XjPhi const & tc) {
         return os << tc.xj.value <<','<<tc.phi.value<<'\n';
     }
@@ -731,6 +740,8 @@ public:
 private:
 	Scalar xj;
 	Scalar phi;
+	Photon photon;
+	Jet jet;
 };
 #endif
 
