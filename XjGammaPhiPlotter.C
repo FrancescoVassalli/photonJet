@@ -225,14 +225,14 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 			continue;
 		}
 		tree->GetEntry(i);
-		//cout<<"////////NEW\\\\\\\\\\\\\\\\\\"<<(*mult)->size()<<'\n';
-		for (int j = 0; j < jetend; ++j)
+		cout<<"////////NEW\\\\\\\\\\\\\\\\\\"<<jetend<<'\n';
+		/*for (int j = 0; j < jetend; ++j)
 		{
 			/*if(jetR[j]==.4){
 				cout<<jetpT[j]<<','<<jetphi[j]<<'\n';
 			}*/
-			cout<<jetR[j]<<'\n';
-		}
+			//cout<<jetR[j]<<'\n';
+		//}
 		//getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
 		photonpTQ.push(photonQ.front().getpT().value);
 		photonQ.pop();
@@ -309,7 +309,8 @@ void xjgpT(TChain* dirc, TChain *frag){
 }
 
 queue<Photon> makePhotons(TChain *chain){
-	vector<string> interestBranches={"photonPosition","eT","phi","eta","end","direct"};
+	vector<string> interestBranches={"eT","phi","eta","end","direct","ID"};
+	//put photon position in here if you want it 
 	TObjArray* branches = (TObjArray*)(chain->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
 	{
@@ -321,31 +322,35 @@ queue<Photon> makePhotons(TChain *chain){
 	float eT[300];
 	float phi[300];
 	float eta[300];
+	int id[300];
 	int photonPosition;
 	bool direct;
 	int end;
 	chain->SetBranchAddress("eT",&eT);
 	chain->SetBranchAddress("phi",&phi);
 	chain->SetBranchAddress("eta",&eta);
-	chain->SetBranchAddress("photonPosition",&photonPosition);
+	//chain->SetBranchAddress("photonPosition",&photonPosition);
 	chain->SetBranchAddress("end",&end);
 	chain->SetBranchAddress("direct",&direct);
+	chain->SetBranchAddress("ID",&id);
 	queue<Photon> r;
 	for (int i = 0; i < chain->GetEntries(); ++i)
 	{
 		chain->GetEntry(i);
-		r.push(Photon(end,photonPosition,eT,phi,eta,direct));
+		Photon pTemp =Photon(end,id,eT,phi,eta,direct,.3,10);\
+		//cout<<pTemp.getPosition()<<": d:"<<pTemp.isDirect()<<'\n';
+		r.push(pTemp);
 	}
 	return r;
 }
 
 void XjGammaPhiPlotter(){
-	string filename = "XjPhi";
+	string filename = "XjPhi_pT5_";
 	string extension = ".root";
-	int filecount=1;
+	int filecount=100;
 	TChain *all = new TChain("interest");
 	string temp;
-	for (int i = 0; i < filecount; ++i)
+	for (int i = 60; i < filecount; ++i)
 	{
 		temp = filename+to_string(i)+extension;
 		all->Add(temp.c_str());
