@@ -382,7 +382,6 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
           		ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
           		ascii_io << hepmcevt; //write event to file 
           		delete hepmcevt; //delete event so it can be redeclared next time
-          		end=pythiaengine.event.size();
     			//Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
@@ -416,7 +415,7 @@ int main(int argc, char const *argv[] )
 	string fileOut = string(argv[1]);
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
-	int nEvents = 30000;
+	int nEvents = 5000000;
 	makeData(fileOut,nEvents, pTHat, gammaCut);
 	return 0;
 }
