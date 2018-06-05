@@ -191,6 +191,10 @@ queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* je
 	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,SIZE));
 }
 
+/*Jet selectJet(queue<Jet> q){
+
+}*/
+
 void plot1D(TChain *tree,queue<Photon> photonQ){
 	//could also turn them all off and turn the ones I want on
 	vector<string> interestBranches={"jetphi","jetpT","jety","jetR","jetend"};
@@ -212,7 +216,7 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 	tree->SetBranchAddress("jety",&jety);
 	tree->SetBranchAddress("jetR",&jetR);
 	tree->SetBranchAddress("jetend",&jetend);
-
+	queue<float> photonpTQ;
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
 		//cout<<"Iso:"<<photonQ.front().getIsoEt()<<'\n';
@@ -230,6 +234,7 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 			cout<<jetR[j]<<'\n';
 		}
 		//getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
+		photonpTQ.push(photonQ.front().getpT().value);
 		photonQ.pop();
 	}
 	/*TCanvas *tc = new TCanvas();
@@ -335,9 +340,9 @@ queue<Photon> makePhotons(TChain *chain){
 }
 
 void XjGammaPhiPlotter(){
-	string filename = "XjPhi_pT15_";
+	string filename = "XjPhi";
 	string extension = ".root";
-	int filecount=5;
+	int filecount=1;
 	TChain *all = new TChain("interest");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
