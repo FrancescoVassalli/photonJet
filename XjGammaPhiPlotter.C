@@ -171,19 +171,13 @@ queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, flo
 
 queue<Jet> getRJets(float r,queue<Jet> q){
 	queue<Jet> rQ;
-	int count=0;
 	while(!q.empty()){
 		if (q.front().getr()==r)
 		{
 			rQ.push(q.front());
-			count++;
 		}
-	}
-	if (count!=0)
-	{
-		//cout<<count<<'\n';
-	}
-	//cout<<"done"<<endl;	
+		q.pop();
+	}	
 	return rQ;
 }
 
@@ -197,7 +191,7 @@ queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* je
 
 void plot1D(TChain *tree,queue<Photon> photonQ){
 	//could also turn them all off and turn the ones I want on
-	vector<string> interestBranches={"jetphi","jetpT","jety","jetR","jetend"};
+	/*vector<string> interestBranches={"jetphi","jetpT","jety","jetR","jetend"};
 	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
 	{
@@ -205,56 +199,49 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 		{
 			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
 		}
-	}
+	}*/
 	float jetphi[200];
 	float jetpT[200];
 	float jety[200];
 	float jetR[200];
-	int jetend;
+	int jetend=0;
 	tree->SetBranchAddress("jetphi",&jetphi);
 	tree->SetBranchAddress("jetpT",&jetpT);
 	tree->SetBranchAddress("jety",&jety);
 	tree->SetBranchAddress("jetR",&jetR);
 	tree->SetBranchAddress("jetend",&jetend);
 	queue<float> photonpTQ;
+	queue<XjPhi> xjPhiQ;
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
-		//cout<<"Iso:"<<photonQ.front().getIsoEt()<<'\n';
 		if (photonQ.front().getIsoEt()>3){
 			photonQ.pop();
 			continue;
 		}
 		tree->GetEntry(i);
-		cout<<"////////NEW\\\\\\\\\\\\\\\\\\"<<jetend<<'\n';
-		/*for (int j = 0; j < jetend; ++j)
+		queue<Jet> jTempQ;
+		jTempQ= getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,jetend);
+		if (!jTempQ.empty())
 		{
-			/*if(jetR[j]==.4){
-				cout<<jetpT[j]<<','<<jetphi[j]<<'\n';
-			}*/
-			//cout<<jetR[j]<<'\n';
-		//}
-		//getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,mult->size());
-		photonpTQ.push(photonQ.front().getpT().value);
+			xjPhiQ.push(XjPhi(photonQ.front(),jTempQ.front()));
+		}
 		photonQ.pop();
 	}
-	/*TCanvas *tc = new TCanvas();
+	TCanvas *tc = new TCanvas();
 	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
 	const int binL=19;
 	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
 	TH1F *other = new TH1F("plotb","",binL,bins);
-	for (int i = 0; i < tree->GetEntries(); ++i)
+	while(!xjPhiQ.empty())
 	{
-		tree->GetEntry(i);
-		if (isoET<3) //ET cut
+		if (xjPhiQ.front().getPhoton().isDirect()) //direct vs frag
 		{
-			if (direct) //direct vs frag
-			{
-				plot->Fill(xj);
-			}
-			else{
-				other->Fill(xj);
-			}
+			plot->Fill(xjPhiQ.front().getXj().value);
 		}
+		else{
+			other->Fill(xjPhiQ.front().getXj().value);
+		}
+		xjPhiQ.pop();
 	}
 	cout<<other->Integral()<<endl;
 	cout<<plot->Integral()<<endl;
@@ -271,7 +258,8 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 	doubleZero(plot,1.6,1.9);
 	plot->Draw("p");
 	other->Draw("same p");
-	tl->Draw();*/
+	tl->Draw();
+	tree->ResetBranchAddresses();
 }
 
 void plotMonoJets(TChain* gamma_tree){
@@ -309,7 +297,7 @@ void xjgpT(TChain* dirc, TChain *frag){
 }
 
 queue<Photon> makePhotons(TChain *chain){
-	vector<string> interestBranches={"eT","phi","eta","end","direct","ID"};
+	/*vector<string> interestBranches={"eT","phi","eta","end","direct","ID"};
 	//put photon position in here if you want it 
 	TObjArray* branches = (TObjArray*)(chain->GetListOfBranches());
 	for (TObject* loopBranch : *branches)
@@ -318,7 +306,7 @@ queue<Photon> makePhotons(TChain *chain){
 		{
 			chain->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
 		}
-	}
+	}*/
 	float eT[300];
 	float phi[300];
 	float eta[300];
@@ -329,7 +317,7 @@ queue<Photon> makePhotons(TChain *chain){
 	chain->SetBranchAddress("eT",&eT);
 	chain->SetBranchAddress("phi",&phi);
 	chain->SetBranchAddress("eta",&eta);
-	//chain->SetBranchAddress("photonPosition",&photonPosition);
+	chain->SetBranchAddress("photonPosition",&photonPosition);
 	chain->SetBranchAddress("end",&end);
 	chain->SetBranchAddress("direct",&direct);
 	chain->SetBranchAddress("ID",&id);
@@ -340,6 +328,21 @@ queue<Photon> makePhotons(TChain *chain){
 		Photon pTemp =Photon(end,id,eT,phi,eta,direct,.3,10);\
 		//cout<<pTemp.getPosition()<<": d:"<<pTemp.isDirect()<<'\n';
 		r.push(pTemp);
+	}
+	chain->ResetBranchAddresses();
+	return r;
+}
+
+queue<Photon> testPhotonQ(queue<Photon> pQ){
+	queue<Photon> r = pQ;
+	int i=0;
+	while(!pQ.empty()){
+		if (pQ.front().getpT()<10)
+		{
+			cout<<"Bad Event:"<<i<<'\n';
+		}
+		pQ.pop();
+		i++;
 	}
 	return r;
 }
