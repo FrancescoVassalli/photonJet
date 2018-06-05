@@ -249,8 +249,9 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,float* phi,int* mother1,int* mother2){
+int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,float* phi,int* mother1,int* mother2, int* position){
 	int arrcount=0;
+	int originalpositon=*position;
 	for (int i = 0; i < e.size(); ++i)
 	{
 	  if(e[i].isFinal()){
@@ -263,6 +264,9 @@ int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,
   		mother1[arrcount]=e[i].mother1();
   		mother2[arrcount]=e[i].mother2();
   		arrcount++;
+	  }
+	  else{
+	  	if(i<originalpositon) *position=*position-1;
 	  }
 	}
 	return --arrcount;
@@ -386,11 +390,11 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
     			/*fill the tree*/ 
 
   				/*fill the particle vectors*/
-  				end=fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2);
+  				position=i;
+  				end=fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,&position);
   				/*fill the jet vectors*/
   				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR);
   				/* fill the non vector*/
-  				position=finalcount++;
   				jetquark=isDirect(pythiaengine.info.code());
   				interestXj->Fill();
      			break;
