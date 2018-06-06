@@ -12,6 +12,7 @@ using namespace std;
 
 const double PI = TMath::Pi();
 bool namein(string test, std::vector<string> v);
+queue<Photon> makePhotons(TChain *chain);
 
 /* //for when you dont use TTrees which you always should 
 void plotText(string filename){
@@ -45,45 +46,6 @@ void plotText(string filename){
 
 }*/
 
-/*void plotXjPhi(TChain *dirc,TChain *frag){
-	vector<string> interestBranches={"xj","direct","isoEt","photonPosition",};
-	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
-	for (TObject* loopBranch : *branches)
-	{
-		if (!namein(string(loopBranch->GetName()),interestBranches))
-		{
-			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
-		}
-	}
-	float xj,isoET;
-	bool direct;
-	tree->SetBranchAddress("xj",&xj);
-	tree->SetBranchAddress("direct",&direct);
-	tree->SetBranchAddress("isoEt",&isoET);
-	TCanvas *tc = new TCanvas();
-	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
-	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
-	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
-	//gStyle->SetOptStat(1);
-	/*make the plot nice*/
-	/*tc->SetRightMargin(.15);
-	//plot->Scale(1,"width");
-	axisTitles(p_dirc,"#Delta#phi","Xj");
-	axisTitleSize(p_dirc,.07);
-	axisTitleOffset(p_dirc,1);
-	axisTitles(p_frag,"#Delta#phi","Xj");
-	axisTitleSize(p_frag,.07);
-	axisTitleOffset(p_frag,1);
-	p_dirc->Scale(1/p_dirc->Integral());
-	p_frag->Scale(1/p_frag->Integral());
-	cout<<dirc->GetEntries()+frag->GetEntries()<<endl;
-	//gPad->SetLogz(); //this looks bad so getting more stats
-	tc->cd(1);
-	p_frag->Draw("colz");
-	//tc2->cd(1);
-	//p_dirc->Draw("lego2");
-}*/
-
 bool namein(string test, std::vector<string> v){
 	bool in =false;
 	for (std::vector<string>::iterator i = v.begin(); i != v.end(); ++i)
@@ -96,63 +58,6 @@ bool namein(string test, std::vector<string> v){
 	}
 	return in;
 }
-
-/*void plot1D(TChain *tree){
-	//could also turn them all off and turn the ones I want on
-	vector<string> interestBranches={"xj","direct","isoEt"};
-	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
-	for (TObject* loopBranch : *branches)
-	{
-		if (!namein(string(loopBranch->GetName()),interestBranches))
-		{
-			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
-		}
-	}
-	float xj,isoET;
-	bool direct;
-	tree->SetBranchAddress("xj",&xj);
-	tree->SetBranchAddress("direct",&direct);
-	tree->SetBranchAddress("isoEt",&isoET);
-	TCanvas *tc = new TCanvas();
-	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
-	const int binL=19;
-	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
-	TH1F *other = new TH1F("plotb","",binL,bins);
-	for (int i = 0; i < tree->GetEntries(); ++i)
-	{
-		tree->GetEntry(i);
-		if (isoET<3) //ET cut
-		{
-			if (direct) //direct vs frag
-			{
-				plot->Fill(xj);
-			}
-			else{
-				other->Fill(xj);
-			}
-		}
-	}
-	cout<<other->Integral()<<endl;
-	cout<<plot->Integral()<<endl;
-	plot->Scale(1/plot->Integral(),"width");
-	other->Scale(1/other->Integral(),"width");
-	TLegend *tl =new TLegend(.1,.6,.4,.9);
-	tl->AddEntry(plot,"direct","p");
-	tl->AddEntry(other,"frag","p");
-	axisTitles(plot,"Xj","");
-	axisTitleSize(plot,.06);
-	axisTitleOffset(plot,.7);
-	smallBorders();
-	makeDifferent(other,1);
-	doubleZero(plot,1.6,1.9);
-	plot->Draw("p");
-	other->Draw("same p");
-	tl->Draw();
-}*/
-
-/*Jet matchJet(Photon p, queue<Jet> jQ){
-
-}*/
 
 queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, int SIZE){
 	queue<Jet> r;
@@ -189,17 +94,70 @@ queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* je
 
 }*/
 
-void plot1D(TChain *tree,queue<Photon> photonQ){
-	//could also turn them all off and turn the ones I want on
-	/*vector<string> interestBranches={"jetphi","jetpT","jety","jetR","jetend"};
-	TObjArray* branches = (TObjArray*)(tree->GetListOfBranches());
-	for (TObject* loopBranch : *branches)
+void plot1D(queue<XjPhi> xjPhiQ){
+	
+	TCanvas *tc = new TCanvas();
+	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
+	const int binL=19;
+	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
+	TH1F *other = new TH1F("plotb","",binL,bins);
+	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
+	
+	while(!xjPhiQ.empty())
 	{
-		if (!namein(string(loopBranch->GetName()),interestBranches))
+		if (xjPhiQ.front().getPhoton().isDirect()) //direct vs frag
 		{
-			tree->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
+			other->Fill(xjPhiQ.front().getXj().value);
+			p_dirc->Fill(xjPhiQ.front().getphi().value,xjPhiQ.front().getXj().value);
 		}
-	}*/
+		else{
+			plot->Fill(xjPhiQ.front().getXj().value);
+			p_frag->Fill(xjPhiQ.front().getphi().value,xjPhiQ.front().getXj().value);
+		}
+		xjPhiQ.pop();
+	}
+	cout<<other->Integral()<<endl;
+	cout<<plot->Integral()<<endl;
+	plot->Scale(1/plot->Integral(),"width");
+	other->Scale(1/other->Integral(),"width");
+	TLegend *tl =new TLegend(.1,.6,.4,.9);
+	tl->AddEntry(plot,"frag","p");
+	tl->AddEntry(other,"direct","p");
+	axisTitles(plot,"Xj","");
+	axisTitleSize(plot,.06);
+	axisTitleOffset(plot,.7);
+	smallBorders();
+	makeDifferent(other,1);
+	doubleZero(plot,1.6,1.9);
+	plot->Draw("p");
+	other->Draw("same p");
+	tl->Draw();
+	tc->SetRightMargin(.15);
+	//plot->Scale(1,"width");
+	axisTitles(p_dirc,"#Delta#phi","Xj");
+	axisTitleSize(p_dirc,.07);
+	axisTitleOffset(p_dirc,1);
+	axisTitles(p_frag,"#Delta#phi","Xj");
+	axisTitleSize(p_frag,.07);
+	axisTitleOffset(p_frag,.6);
+	p_dirc->Scale(1/p_dirc->Integral());
+	p_frag->Scale(1/p_frag->Integral());
+	p_frag->Draw("colz");
+}
+
+void plotMonoJets(TChain* gamma_tree){
+	TCanvas *tc = new TCanvas();
+	TH1F* plot =new TH1F("mono","",20,0,2*TMath::Pi());
+	gamma_tree->Draw("monPhi>>mono");
+	plot->Draw("p");
+	cout<<"Monojets:"<<plot->Integral()<<'\n';
+	cout<<"Total:"<<gamma_tree->GetEntries()<<'\n';
+	cout<<"Ratio:"<<plot->Integral()/gamma_tree->GetEntries()<<'\n';
+}
+
+queue<XjPhi> getXjPhi(TChain *tree){
+	queue<Photon> photonQ=makePhotons(tree);
 	float jetphi[200];
 	float jetpT[200];
 	float jety[200];
@@ -227,86 +185,41 @@ void plot1D(TChain *tree,queue<Photon> photonQ){
 		}
 		photonQ.pop();
 	}
+	tree->ResetBranchAddresses();
+	return xjPhiQ;
+}
+
+void xjgpT(queue<XjPhi> xjPhiQ){
+	
 	TCanvas *tc = new TCanvas();
-	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
-	const int binL=19;
-	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
-	TH1F *other = new TH1F("plotb","",binL,bins);
+	TH2F *p_dirc = new TH2F("plot1","",20,10,30,16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,10,30,16,0,2.6); //can make mondular hist names 
+	
 	while(!xjPhiQ.empty())
 	{
-		if (xjPhiQ.front().getPhoton().isDirect()) //direct vs frag
+		if (xjPhiQ.front().getPhoton().isDirect()) 
 		{
-			other->Fill(xjPhiQ.front().getXj().value);
+			p_dirc->Fill(xjPhiQ.front().getPhoton().getpT().value,xjPhiQ.front().getXj().value);
 		}
 		else{
-			plot->Fill(xjPhiQ.front().getXj().value);
+			p_frag->Fill(xjPhiQ.front().getPhoton().getpT().value,xjPhiQ.front().getXj().value);
 		}
 		xjPhiQ.pop();
 	}
-	cout<<other->Integral()<<endl;
-	cout<<plot->Integral()<<endl;
-	plot->Scale(1/plot->Integral(),"width");
-	other->Scale(1/other->Integral(),"width");
-	TLegend *tl =new TLegend(.1,.6,.4,.9);
-	tl->AddEntry(plot,"frag","p");
-	tl->AddEntry(other,"direct","p");
-	axisTitles(plot,"Xj","");
-	axisTitleSize(plot,.06);
-	axisTitleOffset(plot,.7);
-	smallBorders();
-	makeDifferent(other,1);
-	doubleZero(plot,1.6,1.9);
-	plot->Draw("p");
-	other->Draw("same p");
-	tl->Draw();
-	tree->ResetBranchAddresses();
-}
-
-void plotMonoJets(TChain* gamma_tree){
-	TCanvas *tc = new TCanvas();
-	TH1F* plot =new TH1F("mono","",20,0,2*TMath::Pi());
-	gamma_tree->Draw("monPhi>>mono");
-	plot->Draw("p");
-	cout<<"Monojets:"<<plot->Integral()<<'\n';
-	cout<<"Total:"<<gamma_tree->GetEntries()<<'\n';
-	cout<<"Ratio:"<<plot->Integral()/gamma_tree->GetEntries()<<'\n';
-}
-
-void xjgpT(TChain* dirc, TChain *frag){
-	TCanvas *tc = new TCanvas();
-	//tc->Divide(2,1);
-	//double bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1,1.13,1.5,2};
-	TH2F *p_dirc = new TH2F("plot1","",20,20,26,16,0,2.6); //can make mondular hist names 
-	TH2F *p_frag = new TH2F("plot2","",20,20,26,16,0,2.6); //can make mondular hist names 
-	dirc->Draw("xj:gpT>>plot1");
-	frag->Draw("xj:gpT>>plot2");
-	axisTitles(p_dirc,"#gammapT","Xj");
+	tc->SetRightMargin(.15);
+	//plot->Scale(1,"width");
+	axisTitles(p_dirc,"pT#gamma","Xj");
 	axisTitleSize(p_dirc,.07);
-	axisTitleOffset(p_dirc,.8);
-	axisTitles(p_frag,"#gammapT","Xj");
+	axisTitleOffset(p_dirc,1);
+	axisTitles(p_frag,"pT#gamma","Xj");
 	axisTitleSize(p_frag,.07);
-	axisTitleOffset(p_frag,1);
+	axisTitleOffset(p_frag,.6);
 	p_dirc->Scale(1/p_dirc->Integral());
 	p_frag->Scale(1/p_frag->Integral());
-
-	//gPad->SetLogz(); //this looks bad so getting more stats
-	tc->cd(1);
-	p_frag->Draw("colz");
-	//tc->cd(2);
-	//p_dirc->Draw("lego2");
+	p_frag->Draw("lego2");
 }
 
 queue<Photon> makePhotons(TChain *chain){
-	/*vector<string> interestBranches={"eT","phi","eta","end","direct","ID"};
-	//put photon position in here if you want it 
-	TObjArray* branches = (TObjArray*)(chain->GetListOfBranches());
-	for (TObject* loopBranch : *branches)
-	{
-		if (!namein(string(loopBranch->GetName()),interestBranches))
-		{
-			chain->SetBranchStatus(loopBranch->GetName(),0); //disable other branches 
-		}
-	}*/
 	float eT[300];
 	float phi[300];
 	float eta[300];
@@ -325,7 +238,7 @@ queue<Photon> makePhotons(TChain *chain){
 	for (int i = 0; i < chain->GetEntries(); ++i)
 	{
 		chain->GetEntry(i);
-		Photon pTemp =Photon(end,id,eT,phi,eta,direct,.3,10);\
+		Photon pTemp =Photon(end,photonPosition,eT,phi,eta,direct,.3);\
 		//cout<<pTemp.getPosition()<<": d:"<<pTemp.isDirect()<<'\n';
 		r.push(pTemp);
 	}
@@ -359,11 +272,8 @@ void XjGammaPhiPlotter(){
 		all->Add(temp.c_str());
 	}
 	//plotXjPhi(dirc,frag);
-	queue<Photon> photonQ = makePhotons(all);
-	plot1D(all,photonQ);
-	//xjgpT(dirc,frag);
-	//plot4Bars(dirc,frag);
-	//plotFlavpT(dirc,frag);
-	//plotMonoJets(data);
+	queue<XjPhi> mainQ = getXjPhi(all);
+	//plot1D(mainQ);
+	xjgpT(mainQ);
 	cout<<"end"<<endl;
 }	

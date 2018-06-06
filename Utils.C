@@ -744,6 +744,32 @@ private:
 	Jet jet;
 };
 #endif
+#ifndef FlavorTag_h
+#define	FlavorTag_h
+class FlavorTag
+{
+public:
+	FlavorTag(){}
+	~FlavorTag(){}
+	FlavorTag(Parton p1, Parton p2, Photon ph, Jet j){
+		if (deltaR(p1.gety(),p1.getphi))//comparision
+		{
+			/* code */
+		}
+	}
+	
+private:
+	Parton parton1;
+	Parton parton2;
+	Photon photon;
+	Jet jet;
+	float deltaR(float gy, float gphi, float y, float phi)
+	{
+	  return TMath::Power((TMath::Power(TMath::Abs(gy-y),2)+TMath::Power(TMath::Abs(gphi-phi),2)),.5);
+	}
+
+};
+#endif
 
 float** qXjPhiTo2DArray(queue<XjPhi> in){
 	float** out = new float*[2];
