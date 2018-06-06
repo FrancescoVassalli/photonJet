@@ -13,7 +13,7 @@ using namespace std;
 const double PI = TMath::Pi();
 bool namein(string test, std::vector<string> v);
 queue<Photon> makePhotons(TChain *chain);
-
+stringstream analysisStream;
 /* //for when you dont use TTrees which you always should 
 void plotText(string filename){
 	ifstream inFile (filename.c_str()); //txt file containing the names of files to process
@@ -97,8 +97,8 @@ queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* je
 void plot1D(queue<XjPhi> xjPhiQ){
 	
 	TCanvas *tc = new TCanvas();
-	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9};
-	const int binL=19;
+	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2};
+	const int binL=20;
 	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
 	TH1F *other = new TH1F("plotb","",binL,bins);
 	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
@@ -117,11 +117,11 @@ void plot1D(queue<XjPhi> xjPhiQ){
 		}
 		xjPhiQ.pop();
 	}
-	cout<<other->Integral()<<endl;
-	cout<<plot->Integral()<<endl;
+	//cout<<other->Integral()<<endl;
+	analysisStream<<"Frag:"<<plot->Integral()<<'\n';
 	plot->Scale(1/plot->Integral(),"width");
 	other->Scale(1/other->Integral(),"width");
-	TLegend *tl =new TLegend(.1,.6,.4,.9);
+	TLegend *tl =new TLegend(.25,.7,.4,.85);
 	tl->AddEntry(plot,"frag","p");
 	tl->AddEntry(other,"direct","p");
 	axisTitles(plot,"Xj","");
@@ -143,7 +143,7 @@ void plot1D(queue<XjPhi> xjPhiQ){
 	axisTitleOffset(p_frag,.6);
 	p_dirc->Scale(1/p_dirc->Integral());
 	p_frag->Scale(1/p_frag->Integral());
-	p_frag->Draw("colz");
+	//p_frag->Draw("colz");
 }
 
 void plotMonoJets(TChain* gamma_tree){
@@ -170,10 +170,15 @@ queue<XjPhi> getXjPhi(TChain *tree){
 	tree->SetBranchAddress("jetend",&jetend);
 	queue<float> photonpTQ;
 	queue<XjPhi> xjPhiQ;
+	analysisStream<<"Total:"<<tree->GetEntries()<<'\n';
+	int isocutCount=tree->GetEntries();
+	int jetCutCount=tree->GetEntries();
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
 		if (photonQ.front().getIsoEt()>3){
 			photonQ.pop();
+			cutCount--;
+			jetCutCount--;
 			continue;
 		}
 		tree->GetEntry(i);
@@ -183,8 +188,11 @@ queue<XjPhi> getXjPhi(TChain *tree){
 		{
 			xjPhiQ.push(XjPhi(photonQ.front(),jTempQ.front()));
 		}
+		else jetCutCount--;
 		photonQ.pop();
 	}
+	analysisStream<<"IsoCut:"<<isocutCount<<'\n';
+	analysisStream<<"JetCut:"<<jetCutCount<<'\n';
 	tree->ResetBranchAddresses();
 	return xjPhiQ;
 }
@@ -192,8 +200,8 @@ queue<XjPhi> getXjPhi(TChain *tree){
 void xjgpT(queue<XjPhi> xjPhiQ){
 	
 	TCanvas *tc = new TCanvas();
-	TH2F *p_dirc = new TH2F("plot1","",20,10,30,16,0,2.6); //can make mondular hist names 
-	TH2F *p_frag = new TH2F("plot2","",20,10,30,16,0,2.6); //can make mondular hist names 
+	TH2F *p_dirc = new TH2F("plot1","",20,10,20,16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,10,20,16,0,2.6); //can make mondular hist names 
 	
 	while(!xjPhiQ.empty())
 	{
@@ -213,7 +221,7 @@ void xjgpT(queue<XjPhi> xjPhiQ){
 	axisTitleOffset(p_dirc,1);
 	axisTitles(p_frag,"pT#gamma","Xj");
 	axisTitleSize(p_frag,.07);
-	axisTitleOffset(p_frag,.6);
+	axisTitleOffset(p_frag,1);
 	p_dirc->Scale(1/p_dirc->Integral());
 	p_frag->Scale(1/p_frag->Integral());
 	p_frag->Draw("lego2");
@@ -261,6 +269,7 @@ queue<Photon> testPhotonQ(queue<Photon> pQ){
 }
 
 void XjGammaPhiPlotter(){
+	string fileLocation = "/home/user/Droptemp/XjPhiOverFlow/";
 	string filename = "XjPhi_pT5_";
 	string extension = ".root";
 	int filecount=100;
@@ -268,12 +277,13 @@ void XjGammaPhiPlotter(){
 	string temp;
 	for (int i = 60; i < filecount; ++i)
 	{
-		temp = filename+to_string(i)+extension;
+		temp = fileLocation+filename+to_string(i)+extension;
 		all->Add(temp.c_str());
 	}
 	//plotXjPhi(dirc,frag);
 	queue<XjPhi> mainQ = getXjPhi(all);
-	//plot1D(mainQ);
-	xjgpT(mainQ);
-	cout<<"end"<<endl;
+	plot1D(mainQ);
+	//xjgpT(mainQ);
+	analysisStream<<"end"<<endl;
+	cout<<analysisStream.str();
 }	
