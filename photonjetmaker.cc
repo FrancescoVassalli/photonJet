@@ -269,6 +269,22 @@ int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,
 	  	if(i<originalpositon) *position=*position-1;
 	  }
 	}
+	status[arrcount]=e[5].status();
+  	id[arrcount]=e[5].id();
+  	pT[arrcount]=e[5].pT();
+  	eT[arrcount]=e[5].eT();
+  	eta[arrcount]=e[5].eta();
+  	phi[arrcount]=e[5].phi();
+  	mother1[arrcount]=e[5].mother1();
+  	mother2[arrcount]=e[5].mother2();
+  	status[arrcount]=e[5].status();
+  	id[arrcount+1]=e[6].id();
+  	pT[arrcount+1]=e[6].pT();
+  	eT[arrcount+1]=e[6].eT();
+  	eta[arrcount+1]=e[6].eta();
+  	phi[arrcount+1]=e[6].phi();
+  	mother1[arrcount+1]=e[6].mother1();
+  	mother2[arrcount+1]=e[6].mother2();
 	return --arrcount;
 }
 
