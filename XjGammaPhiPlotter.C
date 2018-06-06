@@ -268,9 +268,9 @@ queue<Photon> testPhotonQ(queue<Photon> pQ){
 
 void XjGammaPhiPlotter(){
 	string fileLocation = "/home/user/Droptemp/XjPhiOverFlow/";
-	string filename = "XjPhi_pT5_";
+	string filename = "XjPhi_pT35_";
 	string extension = ".root";
-	int filecount=100;
+	int filecount=50;
 	TChain *all = new TChain("interest");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
