@@ -97,10 +97,8 @@ queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* je
 void plot1D(queue<XjPhi> xjPhiQ){
 	
 	TCanvas *tc = new TCanvas();
-	float bins[] = {.32,.36,.39,.45,.5,.56,.63,.7,.79,.88,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2};
-	const int binL=20;
-	TH1F *plot = new TH1F("plota","",binL,bins); //can make mondular hist names 
-	TH1F *other = new TH1F("plotb","",binL,bins);
+	TH1F *plot = new TH1F("plota","",30,0,1.8); //can make mondular hist names 
+	TH1F *other = new TH1F("plotb","",30,0,1.8);
 	TH2F *p_dirc = new TH2F("plot1","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
 	TH2F *p_frag = new TH2F("plot2","",20,7*TMath::Pi()/8,TMath::Pi(),16,0,2.6); //can make mondular hist names 
 	
@@ -129,7 +127,7 @@ void plot1D(queue<XjPhi> xjPhiQ){
 	axisTitleOffset(plot,.7);
 	smallBorders();
 	makeDifferent(other,1);
-	doubleZero(plot,1.6,1.9);
+	plot->GetYaxis()->SetRangeUser(0,1.8);
 	plot->Draw("p");
 	other->Draw("same p");
 	tl->Draw();
@@ -177,7 +175,7 @@ queue<XjPhi> getXjPhi(TChain *tree){
 	{
 		if (photonQ.front().getIsoEt()>3){
 			photonQ.pop();
-			cutCount--;
+			isocutCount--;
 			jetCutCount--;
 			continue;
 		}
@@ -270,12 +268,12 @@ queue<Photon> testPhotonQ(queue<Photon> pQ){
 
 void XjGammaPhiPlotter(){
 	string fileLocation = "/home/user/Droptemp/XjPhiOverFlow/";
-	string filename = "XjPhi_pT5_";
+	string filename = "XjPhi_pT35_";
 	string extension = ".root";
-	int filecount=100;
+	int filecount=50;
 	TChain *all = new TChain("interest");
 	string temp;
-	for (int i = 60; i < filecount; ++i)
+	for (int i = 0; i < filecount; ++i)
 	{
 		temp = fileLocation+filename+to_string(i)+extension;
 		all->Add(temp.c_str());
