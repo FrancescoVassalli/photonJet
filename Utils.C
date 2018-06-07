@@ -337,7 +337,7 @@ struct Point
 #endif
 #ifndef Parton_h
 #define Parton_h
-#include <TLorentzVector>
+#include "TLorentzVector.h"
 class Parton
 {
 public:
@@ -641,7 +641,6 @@ private:
 #endif
 #ifndef Jet_h
 #define Jet_h
-#include <TLorentzVector>
 class Jet
 {
 public:

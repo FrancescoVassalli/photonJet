@@ -8,7 +8,6 @@
 #include <fstream>
 #include "Pythia8/Pythia.h"
 #include "Pythia8Plugins/HepMC2.h" //added plugin for HepMC, think we will need some new library in pythia for this
-#include "Vec4.h"
 using namespace Pythia8;
 using namespace std;
 #include "TFile.h"
