@@ -34,9 +34,8 @@ cp  $SOURCE $SCRATCH_AREA/fran_chase_HEP/
 #-------------------
 
 cd $SCRATCH_AREA/fran_chase_HEP
-# root command ./p ${1}
-cp XjPhi_pT5_${1}* $OUT_FILE
-
+root Fun4All_G4_sPHENIX.C
+# what is the name of the output 
 
 rm -r $SCRATCH_AREA/fran_chase_photons
                                                        
