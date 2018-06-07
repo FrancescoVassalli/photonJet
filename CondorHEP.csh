@@ -1,27 +1,44 @@
-#!/bin/csh                                                                      
-#This is the condor shell script for 10GeV photons, note pTHatMin should be 5Ge\
-V                                                                               
+#!/bin/csh   
 
-                                                                               \
-set OUT_FILE="/gpfs/mnt/gpfs04/sphenix/user/chase"
-
-set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"
-
-set SOURCE_PHOTONMAKER="/gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet/photon\
-jetmaker"
-
-source /phenix/u/vassalli/.cshrc
+#-------------------
+# Arguments
+#-------------------
 
 @ p = $1
 
-mkdir $SCRATCH_AREA/fran_chase_photons
-cp -r $SOURCE_PHOTONMAKER $SCRATCH_AREA/fran_chase_photons
+#-------------------
+# Variable Defs
+#-------------------
 
-set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassall"
+set OUT_FILE="/sphenix/user/chase"
+
+set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"
+#set SCRATCH_AREA="/phenix/scratch/chase"
+set SOURCE="/direct/phenix+u/vassalli/sWork/Fun4All_G4_sPHENIX.C"
+
+#-------------------
+# Export Libraries
+#-------------------
+
+source /phenix/u/vassalli/.cshrc
+
+#-------------------
+# Set Scratch Area
+#-------------------
+
+mkdir $SCRATCH_AREA/fran_chase_HEP
+cp  $SOURCE $SCRATCH_AREA/fran_chase_HEP/
+
+#-------------------
+# Run Executable 
+#-------------------
+
+cd $SCRATCH_AREA/fran_chase_HEP
+# root command ./p ${1}
+cp XjPhi_pT5_${1}* $OUT_FILE
 
 
-cd $SCRATCH_AREA/fran_chase_photons
-root /direct/phenix+u/vassalli/sWork/Fun4All_G4_sPHENIX.C $1
-
-exit 0
+rm -r $SCRATCH_AREA/fran_chase_photons
+                                                       
+exit 0 
 
