@@ -15,7 +15,7 @@ set OUT_FILE="/sphenix/user/vassalli/HEPOut"
 set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"
 #set SCRATCH_AREA="/phenix/scratch/chase"
 set SOURCE="/direct/phenix+u/vassalli/sWork/Fun4All_G4_sPHENIX.C"
-
+set OUT_NAME="G4sPHENIX${1}.root"
 #-------------------
 # Export Libraries
 #-------------------
@@ -33,9 +33,11 @@ cp  $SOURCE $SCRATCH_AREA/fran_chase_HEP/
 # Run Executable 
 #-------------------
 
+
+
 cd $SCRATCH_AREA/fran_chase_HEP
-root Fun4All_G4_sPHENIX.C
-cp G4sPHENIX.root_g4hcalin_eval.root $OUT_FILE
+root 'Fun4All_G4_sPHENIX.C(${OUT_NAME})'
+cp $OUT_NAME $OUT_FILE
 rm -r $SCRATCH_AREA/fran_chase_photons
                                                        
 exit 0 
