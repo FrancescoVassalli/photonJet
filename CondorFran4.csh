@@ -1,19 +1,45 @@
 #!/bin/csh 
-#This is the condor shell script for 10GeV photons, note pTHatMin should be 5GeV
+#This is the condor shell script for >40GeV photons, note pTHatMin should be 35GeV
+                                                                                                                                            
 
-                                                                                                                                          
-
-source /phenix/u/vassalli/.cshrc
+#-------------------                                                                                                                                 
+# Arguments                                                                                                               
+#-------------------                                                                                                                                  
 
 @ p = $1
 
-                
-set DESTINATION = "/gpfs/mnt/gpfs04/sphenix/user/vassalli"
+#-------------------                                                                                                                                 # Variable Defs                                                                                                                                      
+#-------------------                                                                                                                                  
 
-./photonjetmaker XjPhi_pT35_${1} 35 40
+set OUT_FILE="/sphenix/user/vassalli/XjPhi2"
+
+set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"                                                                                                              
+#set SCRATCH_AREA="/phenix/scratch/chase"
+
+set SOURCE_PHOTONMAKER="/sphenix/user/vassalli/photonJet/photonjetmaker"
+
+#-------------------                                                                                                                                
+# Export Libraries                                                                                                                                   
+#-------------------                                                                                                                                  
+
+source /phenix/u/vassalli/.cshrc
+
+#-------------------                                                                                                                                 
+# Set Scratch Area                                                                                                                                   
+#-------------------                                                                                                                                  
+
+mkdir $SCRATCH_AREA/fran_chase_photons
+cp  $SOURCE_PHOTONMAKER $SCRATCH_AREA/fran_chase_photons/
+
+#-------------------                                                                                                                                 # Run Executable                                                                                                                                     
+#-------------------                                                                                                                                  
+
+cd $SCRATCH_AREA/fran_chase_photons
+./photonjetmaker XjPhi2_pT35_${1} 35 40 3000000
+cp XjPhi2_pT35_${1}* $OUT_FILE
 
 
-cp XjPhi_pT35_${1}* $DESTINATION
-rm XjPhi_pT35_${1}*
+rm -r $SCRATCH_AREA/fran_chase_photons
+
+
 exit 0
-

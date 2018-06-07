@@ -57,8 +57,5 @@ Notify_user     = frva5829@colorado.edu
 # job.  If a number is placed after the command (i.e. Queue 15)
 # then the job will be submitted N times.  Use the $(Process)
 # macro to make your input/output and log files unique.
-<<<<<<< HEAD
-Queue 100
-=======
+
 Queue 50
->>>>>>> 166abcbb45e890f1fa14d0af13df44647ebd4852
