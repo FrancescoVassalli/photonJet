@@ -288,7 +288,7 @@ int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,
 	return --arrcount;
 }
 
-int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, float* phi, float* pT,float* r){
+int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, float* phi, float* pT,float* r,float* m){
 	int arrcount=0;
 	for (int i = 0; i < a1->sizeJet(); ++i)
 	{
@@ -297,6 +297,7 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
 		phi[arrcount]=a1->phi(i);
 		pT[arrcount]=a1->pT(i);
 		r[arrcount]=0.2;
+		m[arrcount]=a1->m(i);
 		arrcount++;
 	}
 	for (int i = 0; i < a2->sizeJet(); ++i)
@@ -306,6 +307,7 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
 	    phi[arrcount]=a2->phi(i);
 	    pT[arrcount]=a2->pT(i);
 	    r[arrcount]=0.3;
+	    m[arrcount]=a2->m(i);
 		arrcount++;
 	}
 	for (int i = 0; i < a3->sizeJet(); ++i)
@@ -315,6 +317,7 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
         phi[arrcount]=a3->phi(i);
 	    pT[arrcount]=a3->pT(i);
         r[arrcount]=0.4;
+        m[arrcount]=a3->m(i);
         arrcount++;
     }
     return --arrcount;
@@ -359,6 +362,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	float jetphi[200];
   	float jetpT[200];
   	float jetR[200];
+  	float jetm[200];
   	/* setting up the branches*/
   	interestXj->Branch("Status",&status,"status[300]/I");
   	interestXj->Branch("ID",&id,"id[300]/I");
@@ -373,6 +377,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("jetpT", jetpT,"jetpT[200]/F");
   	interestXj->Branch("jetmult",&jetmult,"jetmult[200]/I");
   	interestXj->Branch("jetR",jetR,"jetR[200]/F");
+  	interestXj->Branch("jetm",jetm,"jetm[200]/F");
   	/* varibles for the TTree*/
   	int position,end,jetend;
   	bool jetquark;
@@ -408,7 +413,7 @@ void makeData(std::string filename, int nEvents, string pTHat, float gammaCut){
   				position=i;
   				end=fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,&position);
   				/*fill the jet vectors*/
-  				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR);
+  				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR,jetm);
   				/* fill the non vector*/
   				jetquark=isDirect(pythiaengine.info.code());
   				interestXj->Fill();
