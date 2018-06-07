@@ -12,8 +12,8 @@
 
 set OUT_FILE="/sphenix/user/chase"
 
-#set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"
-set SCRATCH_AREA="/phenix/scratch/chase"
+set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"
+#set SCRATCH_AREA="/phenix/scratch/chase"
 set SOURCE_PHOTONMAKER="/sphenix/user/vassalli/photonJet/photonjetmaker"
 
 #-------------------

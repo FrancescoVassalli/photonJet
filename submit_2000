@@ -6,7 +6,7 @@ Universe        = vanilla
 Notification    = Never
 
 # The executable we want to run.
-Executable   =  /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet/CondorFran4.csh
+Executable   =  /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet/CondorShell_2000.csh
 
 # The argument to pass to the executable.
 Arguments       = $(Process) 
@@ -34,13 +34,13 @@ Initialdir   = /gpfs/mnt/gpfs04/sphenix/user/vassalli/photonJet
 Input           = /dev/null
 
 # The job’s stdout is sent to this file.
-Output       =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs4/out.$(Process)
+Output       =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs1/out.$(Process)
 
 # The job’s stderr is sent to this file.
-Error        =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs4/err.$(Process))
+Error        =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs1//err.$(Process))
 
 # The condor log file for this job, useful when debuggin
-Log          =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs4/log.$(Process)
+Log          =/gpfs/mnt/gpfs04/sphenix/user/vassalli/condor_logs1/log.$(Process)
 
 # Email address to send notification to.
 Notify_user     = frva5829@colorado.edu
@@ -57,5 +57,4 @@ Notify_user     = frva5829@colorado.edu
 # job.  If a number is placed after the command (i.e. Queue 15)
 # then the job will be submitted N times.  Use the $(Process)
 # macro to make your input/output and log files unique.
-
-Queue 50
+Queue 10
