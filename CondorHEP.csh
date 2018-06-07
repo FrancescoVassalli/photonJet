@@ -10,7 +10,7 @@
 # Variable Defs
 #-------------------
 
-set OUT_FILE="/sphenix/user/chase"
+set OUT_FILE="/sphenix/user/vassalli/HEPOut"
 
 set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"
 #set SCRATCH_AREA="/phenix/scratch/chase"
@@ -35,8 +35,7 @@ cp  $SOURCE $SCRATCH_AREA/fran_chase_HEP/
 
 cd $SCRATCH_AREA/fran_chase_HEP
 root Fun4All_G4_sPHENIX.C
-# what is the name of the output 
-
+cp G4sPHENIX.root_g4hcalin_eval.root $OUT_FILE
 rm -r $SCRATCH_AREA/fran_chase_photons
                                                        
 exit 0 
