@@ -59,14 +59,14 @@ bool namein(string test, std::vector<string> v){
 	return in;
 }
 
-queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, int SIZE){
+queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* m, float* pz,int SIZE){
 	queue<Jet> r;
 	
 	for (int i = 0; i < SIZE; ++i)
 	{
 		if (TMath::Abs(jetphi[i]-photonPhi)>7.0*TMath::Pi()/8.0)
 		{
-			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i]));
+			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i],m[i],pz[i]));
 			
 		}
 	}
@@ -86,8 +86,23 @@ queue<Jet> getRJets(float r,queue<Jet> q){
 	return rQ;
 }
 
-queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, int SIZE){
-	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,SIZE));
+queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* jetm, float* jetpz, int SIZE){
+	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,jetm,jetpz,SIZE));
+}
+
+Jet* getMaxJet(queue<Jet> jQ){
+	if(jQ.empty()) return NULL;
+	else{
+		Jet *r = new Jet();
+		while(!jQ.empty()){
+			if (jQ.front()>*r)
+			{
+				*r=jQ.front();
+			}
+			jQ.pop();
+		}
+		return r;
+	}
 }
 
 /*Jet selectJet(queue<Jet> q){
@@ -117,8 +132,8 @@ void plot1D(queue<XjPhi> xjPhiQ){
 	}
 	//cout<<other->Integral()<<endl;
 	analysisStream<<"Frag:"<<plot->Integral()<<'\n';
-	plot->Scale(1/plot->Integral(),"width");
-	other->Scale(1/other->Integral(),"width");
+	plot->Scale(1/plot->Integral());
+	other->Scale(1/other->Integral());
 	TLegend *tl =new TLegend(.25,.7,.4,.85);
 	tl->AddEntry(plot,"frag","p");
 	tl->AddEntry(other,"direct","p");
@@ -127,9 +142,10 @@ void plot1D(queue<XjPhi> xjPhiQ){
 	axisTitleOffset(plot,.7);
 	smallBorders();
 	makeDifferent(other,1);
-	plot->GetYaxis()->SetRangeUser(0,2);
-	plot->Draw("p");
-	other->Draw("same p");
+	
+	other->Draw("p");
+	plot->Draw("same p");
+	
 	tl->Draw();
 	tc->SetRightMargin(.15);
 	//plot->Scale(1,"width");
@@ -154,40 +170,62 @@ void plotMonoJets(TChain* gamma_tree){
 	cout<<"Ratio:"<<plot->Integral()/gamma_tree->GetEntries()<<'\n';
 }
 
-queue<XjPhi> getXjPhi(TChain *tree){
-	queue<Photon> photonQ=makePhotons(tree);
+queue<XjPhi> getXjPhi(TChain* tree){
+	float eT[300];
+	float phi[300];
+	float eta[300];
+	float e[300];
+	int id[300];
 	float jetphi[200];
 	float jetpT[200];
 	float jety[200];
 	float jetR[200];
+	float jetm[200];
+	float jetpz[200];
+	int photonPosition;
+	bool direct;
+	int end;
 	int jetend=0;
+	tree->SetBranchAddress("eT",&eT);
+	tree->SetBranchAddress("phi",&phi);
+	tree->SetBranchAddress("eta",&eta);
+	tree->SetBranchAddress("e",&e);
+	tree->SetBranchAddress("photonPosition",&photonPosition);
+	tree->SetBranchAddress("end",&end);
+	tree->SetBranchAddress("direct",&direct);
+	tree->SetBranchAddress("ID",&id);
 	tree->SetBranchAddress("jetphi",&jetphi);
 	tree->SetBranchAddress("jetpT",&jetpT);
 	tree->SetBranchAddress("jety",&jety);
 	tree->SetBranchAddress("jetR",&jetR);
+	tree->SetBranchAddress("jetm",jetm);
+	tree->SetBranchAddress("jetpz",jetpz);
 	tree->SetBranchAddress("jetend",&jetend);
-	queue<float> photonpTQ;
 	queue<XjPhi> xjPhiQ;
 	analysisStream<<"Total:"<<tree->GetEntries()<<'\n';
 	int isocutCount=tree->GetEntries();
 	int jetCutCount=tree->GetEntries();
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
-		if (photonQ.front().getIsoEt()>3){
-			photonQ.pop();
+		tree->GetEntry(i);
+		end++; // ends are measured inclusive I want them exclusive
+		jetend++;
+		Photon pTemp=Photon(end,photonPosition,eT,phi,eta,direct,.3); //make a photon
+		if (pTemp.getIsoEt()>3){ //isoEt cut
 			isocutCount--;
 			jetCutCount--;
 			continue;
 		}
-		tree->GetEntry(i);
-		queue<Jet> jTempQ;
-		jTempQ= getRJets(.4,photonQ.front().getphi().value,jetphi,jety,jetpT,jetR,jetend);
-		if (!jTempQ.empty())
+		Jet* maxJet=NULL;
+		maxJet= getMaxJet(getRJets(.4,pTemp.getphi().value,jetphi,jety,jetpT,jetR,jetm,jetpz,jetend)); //make all the jets then match
+		if (maxJet!=NULL) //if there is a matched jet
 		{
-			xjPhiQ.push(XjPhi(photonQ.front(),jTempQ.front()));
+			maxJet->SetParton(Parton(id[end],phi[end],eta[end],pT[end],e[end]),Parton(id[end+1],phi[end+1],eta[end+1],pT[end+1],e[end+1]))
+			xjPhiQ.push(XjPhi(pTemp,*maxJet));
+			delete maxJet;
+			maxJet=NULL;
 		}
 		else jetCutCount--;
-		photonQ.pop();
 	}
 	analysisStream<<"IsoCut:"<<isocutCount<<'\n';
 	analysisStream<<"JetCut:"<<jetCutCount<<'\n';
@@ -198,8 +236,8 @@ queue<XjPhi> getXjPhi(TChain *tree){
 void xjgpT(queue<XjPhi> xjPhiQ){
 	
 	TCanvas *tc = new TCanvas();
-	TH2F *p_dirc = new TH2F("plot1","",20,10,20,16,0,2.6); //can make mondular hist names 
-	TH2F *p_frag = new TH2F("plot2","",20,10,20,16,0,2.6); //can make mondular hist names 
+	TH2F *p_dirc = new TH2F("plot1","",20,40,50,16,0,2.6); //can make mondular hist names 
+	TH2F *p_frag = new TH2F("plot2","",20,40,50,16,0,2.6); //can make mondular hist names 
 	
 	while(!xjPhiQ.empty())
 	{
@@ -222,7 +260,43 @@ void xjgpT(queue<XjPhi> xjPhiQ){
 	axisTitleOffset(p_frag,1);
 	p_dirc->Scale(1/p_dirc->Integral());
 	p_frag->Scale(1/p_frag->Integral());
-	p_frag->Draw("lego2");
+	p_dirc->Draw("lego2");
+}
+
+void plotpTMatched(queue<XjPhi> xjPhiQ){
+	TCanvas *tc = new TCanvas();
+	TH1F *p_dirc = new TH1F("plot1","",20,10,20); //can make mondular hist names 
+	TH1F *p_frag = new TH1F("plot2","",20,10,20); //can make mondular hist names 
+	
+	while(!xjPhiQ.empty())
+	{
+		if (xjPhiQ.front().getPhoton().isDirect()) 
+		{
+			p_dirc->Fill(xjPhiQ.front().getPhoton().getpT().value);
+		}
+		else{
+			p_frag->Fill(xjPhiQ.front().getPhoton().getpT().value);
+		}
+		xjPhiQ.pop();
+	}
+	tc->SetRightMargin(.15);
+	gPad->SetLogy();
+	axisTitles(p_dirc,"pT#gamma","");
+	axisTitleSize(p_dirc,.07);
+	axisTitleOffset(p_dirc,1);
+	axisTitles(p_frag,"pT#gamma","");
+	axisTitleSize(p_frag,.07);
+	axisTitleOffset(p_frag,1);
+	smallBorders();
+	makeDifferent(p_dirc,1);
+	TLegend *tl =new TLegend(.25,.7,.4,.85);
+	tl->AddEntry(p_frag,"frag","p");
+	tl->AddEntry(p_dirc,"direct","p");
+	p_dirc->Scale(1/p_dirc->Integral(),"width");
+	p_frag->Scale(1/p_frag->Integral(),"width");
+	p_frag->Draw("p");
+	p_dirc->Draw("p same");
+	tl->Draw();
 }
 
 queue<Photon> makePhotons(TChain *chain){
@@ -244,7 +318,7 @@ queue<Photon> makePhotons(TChain *chain){
 	for (int i = 0; i < chain->GetEntries(); ++i)
 	{
 		chain->GetEntry(i);
-		Photon pTemp =Photon(end,photonPosition,eT,phi,eta,direct,.3);\
+		Photon pTemp =Photon(end,photonPosition,eT,phi,eta,direct,.3);
 		//cout<<pTemp.getPosition()<<": d:"<<pTemp.isDirect()<<'\n';
 		r.push(pTemp);
 	}
@@ -281,6 +355,7 @@ void XjGammaPhiPlotter(){
 	//plotXjPhi(dirc,frag);
 	queue<XjPhi> mainQ = getXjPhi(all);
 	plot1D(mainQ);
+	//plotpTMatched(mainQ);
 	//xjgpT(mainQ);
 	analysisStream<<"end"<<endl;
 	cout<<analysisStream.str();
