@@ -16,6 +16,7 @@ set OUT_FILE="/sphenix/user/vassalli/HEPOut"
 set SCRATCH_AREA="/phenix/scratch/chase"
 set SOURCE="/direct/phenix+u/vassalli/sWork/Fun4All_G4_sPHENIX.C"
 set OUT_NAME="G4sPHENIX${1}.root"
+set G4IMPORT="/direct/phenix+u/vassalli/sWork/"
 #-------------------
 # Export Libraries
 #-------------------
@@ -28,7 +29,7 @@ source /phenix/u/vassalli/.cshrc
 
 mkdir $SCRATCH_AREA/fran_chase_HEP
 cp  $SOURCE $SCRATCH_AREA/fran_chase_HEP/
-
+cp $G4IMPORT/* $SCRATCH_AREA/fran_chase_HEP/
 #-------------------
 # Run Executable 
 #-------------------
