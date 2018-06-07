@@ -24,7 +24,7 @@ Rank            = CPU_Speed && memory
 
 # Jobs with higher numerical priority will run before jobs
 # with lower numerical priority (-20 to 20).
-Priority        = +18
+Priority        = +20
 
 # Used to give jobs a directory with respect to file input
 # and output.
@@ -57,4 +57,4 @@ Notify_user     = frva5829@colorado.edu
 # job.  If a number is placed after the command (i.e. Queue 15)
 # then the job will be submitted N times.  Use the $(Process)
 # macro to make your input/output and log files unique.
-Queue 10
+Queue 1
