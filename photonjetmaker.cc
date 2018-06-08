@@ -23,39 +23,6 @@ using namespace std;
 
 //%ROOT_COMMON=-L$(ROOTSYS)/lib -wl,-rpath,$(ROOTSYS)/lib
 
-
- class myEvent
- {
- public:
- 	myEvent(){}
- 	~myEvent(){}
- 	myEvent(int particle,bool direct, int status, int id, float pt, float eta, float phi, float mother1, float mother2,float daughter1, float daughter2){
-		this->particle=particle;
- 		this->direct=direct;
- 		this->status=status;
- 		this->id=id;
- 		this->pt=pt;
- 		this->eta=eta;
- 		this->phi=phi;
- 		this->mother1=mother1;
- 		this->mother2=mother2;	 
- 		this->daughter1=daughter1;
- 		this->daughter2=daughter2;
- 	}
- private:
- 	int particle;
- 	bool direct;
- 	int status;
- 	int id;
- 	float pt;
- 	float eta;
- 	float phi;
- 	float mother1;
- 	float mother2; 	 
- 	float daughter1; 
- 	float daughter2;
- };
-
 float deltaPhi(Photon p, Jet j);
 float deltaR(Parton,Jet);
 
@@ -186,12 +153,6 @@ public:
 	bool isJetQuark(){
 		return jet.isJetQuark();
 	}
-	/*void addEvent(Event e){
-		pythiaEvent=e;
-	}*/
-	/*Event getPythiaEvent(){
-		return pythiaEvent;
-	}*/
 	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
         return os << tc.xjphi;
     }
@@ -249,7 +210,7 @@ queue<myParticle> EventToQueue(Event e){
 	return r;
 }
 
-int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,float* phi,int* mother1,int* mother2, int* position){
+int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,float* phi,int* mother1,int* mother2, float* energy,int* position){
 	int arrcount=0;
 	int originalpositon=*position;
 	for (int i = 0; i < e.size(); ++i)
@@ -261,6 +222,7 @@ int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,
   		eT[arrcount]=e[i].eT();
   		eta[arrcount]=e[i].eta();
   		phi[arrcount]=e[i].phi();
+  		energy[arrcount]=e[i].e();
   		mother1[arrcount]=e[i].mother1();
   		mother2[arrcount]=e[i].mother2();
   		arrcount++;
@@ -275,6 +237,7 @@ int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,
   	eT[arrcount]=e[5].eT();
   	eta[arrcount]=e[5].eta();
   	phi[arrcount]=e[5].phi();
+  	energy[arrcount]=e[5].e();
   	mother1[arrcount]=e[5].mother1();
   	mother2[arrcount]=e[5].mother2();
   	status[arrcount]=e[5].status();
@@ -282,13 +245,14 @@ int fillTreebyEvent(Event e, int* status,int* id,float* pT,float* eT,float* eta,
   	pT[arrcount+1]=e[6].pT();
   	eT[arrcount+1]=e[6].eT();
   	eta[arrcount+1]=e[6].eta();
+  	energy[arrcount+1]=e[6].e();
   	phi[arrcount+1]=e[6].phi();
   	mother1[arrcount+1]=e[6].mother1();
   	mother2[arrcount+1]=e[6].mother2();
 	return --arrcount;
 }
 
-int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, float* phi, float* pT,float* r){
+int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, float* phi, float* pT,float* r,float* m,float* pz){
 	int arrcount=0;
 	for (int i = 0; i < a1->sizeJet(); ++i)
 	{
@@ -297,6 +261,8 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
 		phi[arrcount]=a1->phi(i);
 		pT[arrcount]=a1->pT(i);
 		r[arrcount]=0.2;
+		m[arrcount]=a1->m(i);
+		pz[arrcount]=(a1->p(i)).pz();
 		arrcount++;
 	}
 	for (int i = 0; i < a2->sizeJet(); ++i)
@@ -306,6 +272,8 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
 	    phi[arrcount]=a2->phi(i);
 	    pT[arrcount]=a2->pT(i);
 	    r[arrcount]=0.3;
+	    m[arrcount]=a2->m(i);
+	    pz[arrcount]=(a2->p(i)).pz();
 		arrcount++;
 	}
 	for (int i = 0; i < a3->sizeJet(); ++i)
@@ -315,6 +283,8 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
         phi[arrcount]=a3->phi(i);
 	    pT[arrcount]=a3->pT(i);
         r[arrcount]=0.4;
+        m[arrcount]=a3->m(i);
+        pz[arrcount]=(a3->p(i)).pz();
         arrcount++;
     }
     return --arrcount;
@@ -353,12 +323,15 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   	float eta[300];
   	float phi[300];
 	float eT[300];
+	float e[300];
   	
   	int jetmult[200];
   	float jety[200];
   	float jetphi[200];
   	float jetpT[200];
   	float jetR[200];
+  	float jetpz[200];
+  	float jetm[200];
   	/* setting up the branches*/
   	interestXj->Branch("Status",&status,"status[300]/I");
   	interestXj->Branch("ID",&id,"id[300]/I");
@@ -366,6 +339,7 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("eta",eta,"eta[300]/F");
   	interestXj->Branch("phi",phi,"phi[300]/F");
 	interestXj->Branch("eT",eT,"eT[300]/F");
+	interestXj->Branch("e",e,"e[300]/F");
   	interestXj->Branch("mother1",&mother1,"mother1[300]/I");
   	interestXj->Branch("mother2",&mother2,"mother2[300]/I");
   	interestXj->Branch("jety",jety,"jety[200]/F");
@@ -373,6 +347,8 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("jetpT", jetpT,"jetpT[200]/F");
   	interestXj->Branch("jetmult",&jetmult,"jetmult[200]/I");
   	interestXj->Branch("jetR",jetR,"jetR[200]/F");
+  	interestXj->Branch("jetm",jetm,"jetm[200]/F");
+  	interestXj->Branch("jetpz",jetpz,"jetpz[200]/F");
   	/* varibles for the TTree*/
   	int position,end,jetend;
   	bool jetquark;
@@ -398,7 +374,7 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
           		ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
           		ascii_io << hepmcevt; //write event to file 
           		delete hepmcevt; //delete event so it can be redeclared next time
-    			//Photon myPhoton = Photon(i,pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
+    		
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
     			antikT4->analyze(pythiaengine.event);
@@ -406,9 +382,9 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
 
   				/*fill the particle vectors*/
   				position=i;
-  				end=fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,&position);
+  				end=fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,e,&position);
   				/*fill the jet vectors*/
-  				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR);
+  				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR,jetm,jetpz);
   				/* fill the non vector*/
   				jetquark=isDirect(pythiaengine.info.code());
   				interestXj->Fill();
@@ -416,11 +392,10 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
     		}
     	}
   	}
-  	delete antikT2;
+  	delete antikT2; //clear the mem
   	delete antikT3;
   	delete antikT4;
   	interestXj->Write();
-  	//f->Write();
   	f->Close();
   	delete f;
   	f=NULL;

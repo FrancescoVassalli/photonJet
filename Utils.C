@@ -337,21 +337,33 @@ struct Point
 #endif
 #ifndef Parton_h
 #define Parton_h
+#include "TLorentzVector.h"
 class Parton
 {
 public:
 	Parton(){}
 	~Parton(){}
-	Parton(int ID, float phi, float y, float px, float py){
+	Parton(int ID, float phi, float y){
 		quark=isQuark(ID);
 		this->phi=phi;
 		this->y=y;
+	}
+	Parton(int ID, float phi, float eta, float pT, float e){
+		quark=isQuark(ID);
+		TLorentzVector tlv;
+		tlv.SetPtEtaPhiE(pT,eta,phi,e);
+		this->phi=phi;
+		y=tlv.Rapidity();
+		this->eta = eta;
 	}
 	float getphi(){
 		return phi;
 	}
 	float gety(){
 		return y;
+	}
+	float geteta(){
+		return eta;
 	}
 	bool getQuark(){
 		return quark;
@@ -360,8 +372,30 @@ private:
 	bool quark;
 	float phi;
 	float y;	
+	float eta;
 	bool isQuark(int ID){
 		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
+	}
+	float idToMass(int ID){
+		ID=TMath::Abs(ID);
+		switch(ID){
+			case 2: return 0.0022;
+				break;
+			case 1: return 0.0047;
+				break;
+			case 3: return 0.096;
+				break;
+			case 4: return 1.28;
+				break;
+			case 5: return 4.18;
+				break;
+			case 6: return 173;
+				break;
+			case 21: return 0;
+				break;
+			default: return -1;
+				break;
+		}
 	}
 };
 #endif
@@ -587,7 +621,7 @@ private:
 				isoEt+=eT[i];
 			}
 		}
-		isoEt-=pT.value;
+		isoEt-=pT.value; //take the photon out
 		return isoEt;
 	}
 	inline bool isPhoton(int id){
@@ -610,7 +644,9 @@ private:
 class Jet
 {
 public:
-	Jet(){}
+	Jet(){
+		pT=0;
+	}
 	Jet(float _pT, float _phi, float _y, float _r){
 		this->pT =Scalar(_pT);
 		this->phi = Scalar(_phi);
@@ -622,6 +658,13 @@ public:
 		phi=Scalar(_phi);
 		y=Scalar(_y);
 		r=0;
+	}
+	Jet(float _pT, float _phi, float _y, float _r, float pz){ // calculate eta
+		this->pT =Scalar(_pT);
+		this->phi = Scalar(_phi);
+		this->y = Scalar(_y);
+		this->r = Scalar(_r);
+		eta= Scalar(calculateEta(_pT,pz));
 	}
 	~Jet(){
 		if (next!=NULL)
@@ -638,8 +681,8 @@ public:
 	void setMult(int m){
 		mult=m;
 	}
-	Parton setParton(Parton p1, Parton p2){
-		if (deltaR(p1)>deltaR(p2))//comparision
+	Parton setParton(Parton p1, Parton p2){  
+		if (deltaR(p1)<deltaR(p2))//comparision
 		{
 			parton=p1;	
 		}
@@ -698,13 +741,17 @@ private:
 	Scalar phi =7;
 	Scalar y=0;
 	Scalar r=-1;
+	Scalar eta;
 	int mult=0;
 	Jet* next=NULL;
 	Jet* pair=NULL;
 	Parton parton;
 
 	float deltaR(Parton p){
-	  return TMath::Power((TMath::Power(TMath::Abs(p.gety()-y.value),2)+TMath::Power(TMath::Abs(p.getphi()-phi.value),2)),.5);
+	  return TMath::Power((TMath::Power(TMath::Abs(p.geteta()-eta.value),2)+TMath::Power(TMath::Abs(p.getphi()-phi.value),2)),.5);
+	}
+	float calculateEta(float pt, float pz){
+		return .5* TMath::Log((TMath::Power(pt*pt+pz*pz,.5)+pt))/((TMath::Power(pt*pt+pz*pz,.5)-pt));
 	}
 	
 };
