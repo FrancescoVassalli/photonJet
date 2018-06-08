@@ -37,7 +37,7 @@ cp $G4IMPORT/* $SCRATCH_AREA/fran_chase_HEP/
 
 
 cd $SCRATCH_AREA/fran_chase_HEP
-root Fun4All_G4_sPHENIX.C\(\"$OUT_FILE\"\)
+root Fun4All_G4_sPHENIX.C\(\"$OUT_NAME\"\)
 cp $OUT_NAME $OUT_FILE
 rm -r $SCRATCH_AREA/fran_chase_HEP
                                                        
