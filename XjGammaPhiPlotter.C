@@ -59,14 +59,14 @@ bool namein(string test, std::vector<string> v){
 	return in;
 }
 
-queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* m, float* pz,int SIZE){
+queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* pz,int SIZE){
 	queue<Jet> r;
 	
 	for (int i = 0; i < SIZE; ++i)
 	{
 		if (TMath::Abs(jetphi[i]-photonPhi)>7.0*TMath::Pi()/8.0)
 		{
-			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i],m[i],pz[i]));
+			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i],pz[i]));
 			
 		}
 	}
@@ -86,8 +86,8 @@ queue<Jet> getRJets(float r,queue<Jet> q){
 	return rQ;
 }
 
-queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* jetm, float* jetpz, int SIZE){
-	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,jetm,jetpz,SIZE));
+queue<Jet> getRJets(float r,float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* jetpz, int SIZE){
+	return getRJets(r,makeJets(photonPhi,jetphi,jety,jetpT,jetR,jetpz,SIZE));
 }
 
 Jet* getMaxJet(queue<Jet> jQ){
@@ -217,10 +217,10 @@ queue<XjPhi> getXjPhi(TChain* tree){
 			continue;
 		}
 		Jet* maxJet=NULL;
-		maxJet= getMaxJet(getRJets(.4,pTemp.getphi().value,jetphi,jety,jetpT,jetR,jetm,jetpz,jetend)); //make all the jets then match
+		maxJet= getMaxJet(getRJets(.4,pTemp.getphi().value,jetphi,jety,jetpT,jetR,jetpz,jetend)); //make all the jets then match
 		if (maxJet!=NULL) //if there is a matched jet
 		{
-			maxJet->SetParton(Parton(id[end],phi[end],eta[end],pT[end],e[end]),Parton(id[end+1],phi[end+1],eta[end+1],pT[end+1],e[end+1]))
+			maxJet->setParton(Parton(id[end],phi[end],eta[end],eT[end],e[end]),Parton(id[end+1],phi[end+1],eta[end+1],eT[end+1],e[end+1]));
 			xjPhiQ.push(XjPhi(pTemp,*maxJet));
 			delete maxJet;
 			maxJet=NULL;
@@ -340,9 +340,140 @@ queue<Photon> testPhotonQ(queue<Photon> pQ){
 	return r;
 }
 
+void classifyTypeAndFlavorpTg(queue<XjPhi> xjPhiQ){
+	TCanvas *tc = new TCanvas();
+	TH1F *p_dircQ = new TH1F("plot1","",20,29,38); //can make mondular hist names 
+	TH1F *p_dircG = new TH1F("plot2","",20,29,38); //can make mondular hist names 
+	TH1F *p_fragQ = new TH1F("plot3","",20,29,38); //can make mondular hist names 
+	TH1F *p_fragG = new TH1F("plot4","",20,29,38); //can make mondular hist names 
+	//p_dircG->Sumw2();
+	//p_dircQ->Sumw2();
+	//p_fragQ->Sumw2();
+	//p_fragG->Sumw2();
+	int totalSize= xjPhiQ.size();
+	while(!xjPhiQ.empty())
+	{
+		if (xjPhiQ.front().getPhoton().isDirect()) 
+		{
+			if (xjPhiQ.front().isQuark())
+			{
+				p_dircQ->Fill(xjPhiQ.front().getPhoton().getpT().value);
+			}
+			else p_dircG->Fill(xjPhiQ.front().getPhoton().getpT().value);
+		}
+		else{
+			if (xjPhiQ.front().isQuark())
+			{
+				p_fragQ->Fill(xjPhiQ.front().getPhoton().getpT().value);
+			}
+			else p_fragG->Fill(xjPhiQ.front().getPhoton().getpT().value);
+		}
+		xjPhiQ.pop();
+	}
+	tc->SetRightMargin(.15);
+	//gPad->SetLogy();
+	gStyle->SetErrorX(0);
+	axisTitles(p_dircQ,"pT#gamma","");
+	axisTitleSize(p_dircQ,.06);
+	axisTitleOffset(p_dircQ,.8);
+	axisTitles(p_fragQ,"pT#gamma","");
+	axisTitleSize(p_fragQ,.07);
+	axisTitleOffset(p_fragQ,1);
+	smallBorders();
+	queue<TH1F*> diff;
+	diff.push(p_dircQ);
+	diff.push(p_dircG);
+	diff.push(p_fragG);
+	makeDifferent(diff);
+	//gPad->SetLogy();
+	TLegend *tl =new TLegend(.25,.7,.4,.85);
+	tl->AddEntry(p_fragQ,"frag Quark","p");
+	tl->AddEntry(p_dircQ,"direct Quark","p");
+	tl->AddEntry(p_dircG,"direct Gluon","p");
+	tl->AddEntry(p_fragG,"frag Gluon","p");
+	TH1F* hlist[4];
+	hlist[0]= p_dircQ;
+	hlist[1]=p_dircG;
+	hlist[2]=p_fragQ;
+	hlist[3]=p_fragG;
+	normalizeBins(hlist,4);
+	THStack *myStack = getStack(hlist,4,"hist","pT#gamma","");
+	//myStack->GetXaxis()->SetTitle("pT#gamma");
+	myStack->Draw();
+	axisTitles(myStack,"pT#gamma GeV","Relative Count");
+	axisTitleOffset(myStack,.8);
+	tl->Draw();
+}
+
+
+void classifyTypeAndFlavorpTJet(queue<XjPhi> xjPhiQ){
+	TCanvas *tc = new TCanvas();
+	TH1F *p_dircQ = new TH1F("plot1","",20,9,22); //can make mondular hist names 
+	TH1F *p_dircG = new TH1F("plot2","",20,9,22); //can make mondular hist names 
+	TH1F *p_fragQ = new TH1F("plot3","",20,9,22); //can make mondular hist names 
+	TH1F *p_fragG = new TH1F("plot4","",20,9,22); //can make mondular hist names 
+	//p_dircG->Sumw2();
+	//p_dircQ->Sumw2();
+	//p_fragQ->Sumw2();
+	//p_fragG->Sumw2();
+	int totalSize= xjPhiQ.size();
+	while(!xjPhiQ.empty())
+	{
+		if (xjPhiQ.front().getPhoton().isDirect()) 
+		{
+			if (xjPhiQ.front().isQuark())
+			{
+				p_dircQ->Fill(xjPhiQ.front().getJet().getpT().value);
+			}
+			else p_dircG->Fill(xjPhiQ.front().getJet().getpT().value);
+		}
+		else{
+			if (xjPhiQ.front().isQuark())
+			{
+				p_fragQ->Fill(xjPhiQ.front().getJet().getpT().value);
+			}
+			else p_fragG->Fill(xjPhiQ.front().getJet().getpT().value);
+		}
+		xjPhiQ.pop();
+	}
+	tc->SetRightMargin(.15);
+	//gPad->SetLogy();
+	gStyle->SetErrorX(0);
+	axisTitles(p_dircQ,"pT-Jet GeV","");
+	axisTitleSize(p_dircQ,.06);
+	axisTitleOffset(p_dircQ,.8);
+	axisTitles(p_fragQ,"pT-Jet GeV","");
+	axisTitleSize(p_fragQ,.07);
+	axisTitleOffset(p_fragQ,1);
+	smallBorders();
+	queue<TH1F*> diff;
+	diff.push(p_dircQ);
+	diff.push(p_dircG);
+	diff.push(p_fragG);
+	makeDifferent(diff);
+	//gPad->SetLogy();
+	TLegend *tl =new TLegend(.25,.7,.4,.85);
+	tl->AddEntry(p_fragQ,"frag Quark","p");
+	tl->AddEntry(p_dircQ,"direct Quark","p");
+	tl->AddEntry(p_dircG,"direct Gluon","p");
+	tl->AddEntry(p_fragG,"frag Gluon","p");
+	TH1F* hlist[4];
+	hlist[0]= p_dircQ;
+	hlist[1]=p_dircG;
+	hlist[2]=p_fragQ;
+	hlist[3]=p_fragG;
+	normalizeBins(hlist,4);
+	THStack *myStack = getStack(hlist,4,"hist","pT#gamma","");
+	//myStack->GetXaxis()->SetTitle("pT#gamma");
+	myStack->Draw();
+	axisTitles(myStack,"pT-Jet GeV","Relative Count");
+	axisTitleOffset(myStack,.8);
+	tl->Draw();
+}
+
 void XjGammaPhiPlotter(){
-	string fileLocation = "/home/user/Droptemp/XjPhiOverFlow/";
-	string filename = "XjPhi_pT35_";
+	string fileLocation = "";
+	string filename = "XjPhi3_pT25_";
 	string extension = ".root";
 	int filecount=50;
 	TChain *all = new TChain("interest");
@@ -352,9 +483,12 @@ void XjGammaPhiPlotter(){
 		temp = fileLocation+filename+to_string(i)+extension;
 		all->Add(temp.c_str());
 	}
+	//TChain* all=new TChain("interest");
+	//all->Add("Xj315.root");
 	//plotXjPhi(dirc,frag);
 	queue<XjPhi> mainQ = getXjPhi(all);
-	plot1D(mainQ);
+	//plot1D(mainQ);
+	classifyTypeAndFlavorpTg(mainQ);
 	//plotpTMatched(mainQ);
 	//xjgpT(mainQ);
 	analysisStream<<"end"<<endl;
