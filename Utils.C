@@ -149,6 +149,8 @@ public:
 		r.uncertainty = uncertainty/(value*TMath::Log(base));
 		return r;
 	}
+	operator float(){return value;}
+	operator double(){return (double) value;}
 	friend std::ostream& operator<<(std::ostream& os, Scalar const & tc) {
        return os <<"Scalar:" << tc.value <<char(241)<<tc.uncertainty<<'\n';
     }
