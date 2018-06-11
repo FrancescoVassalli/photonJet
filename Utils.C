@@ -149,6 +149,8 @@ public:
 		r.uncertainty = uncertainty/(value*TMath::Log(base));
 		return r;
 	}
+	operator float(){return value;}
+	operator double(){return (double) value;}
 	friend std::ostream& operator<<(std::ostream& os, Scalar const & tc) {
        return os <<"Scalar:" << tc.value <<char(241)<<tc.uncertainty<<'\n';
     }
@@ -348,10 +350,10 @@ public:
 		this->phi=phi;
 		this->y=y;
 	}
-	Parton(int ID, float phi, float eta, float pT, float e){
+	Parton(int ID, float phi, float eta, float eT, float e){
 		quark=isQuark(ID);
 		TLorentzVector tlv;
-		tlv.SetPtEtaPhiE(pT,eta,phi,e);
+		tlv.SetPtEtaPhiE(eTTopT(eT,ID),eta,phi,e);
 		this->phi=phi;
 		y=tlv.Rapidity();
 		this->eta = eta;
@@ -368,13 +370,16 @@ public:
 	bool getQuark(){
 		return quark;
 	}
-private:
+protected:
 	bool quark;
 	float phi;
 	float y;	
 	float eta;
 	bool isQuark(int ID){
 		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
+	}
+	float eTTopT(float eT, int ID){
+		return TMath::Power(eT*eT-idToMass(ID)*idToMass(ID),.5);
 	}
 	float idToMass(int ID){
 		ID=TMath::Abs(ID);
@@ -636,6 +641,7 @@ private:
 				return position;
 			}
 		}
+		return -1;
 	}
 };
 #endif
@@ -790,6 +796,9 @@ public:
 	}
 	Photon getPhoton(){
 		return photon;
+	}
+	bool isQuark(){
+		return jet.isJetQuark();
 	}
 	Jet getJet(){
 		return jet;
