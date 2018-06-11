@@ -58,4 +58,4 @@ Notify_user     = frva5829@colorado.edu
 # then the job will be submitted N times.  Use the $(Process)
 # macro to make your input/output and log files unique.
 
-Queue 50
+Queue 70

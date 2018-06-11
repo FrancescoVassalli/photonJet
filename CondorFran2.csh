@@ -11,7 +11,7 @@
 #-------------------                                                                                                                                 # Variable Defs                                                                                                                                      
 #-------------------                                                                                                                                  
 
-set OUT_FILE="/sphenix/user/vassalli/XjPhi3"
+set OUT_FILE="/sphenix/user/vassalli/XjPhi4"
 
 set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"                                                                                                              
 #set SCRATCH_AREA="/phenix/scratch/chase"
@@ -35,8 +35,8 @@ cp  $SOURCE_PHOTONMAKER $SCRATCH_AREA/fran_chase_photons/
 #-------------------                                                                                                                                  
 
 cd $SCRATCH_AREA/fran_chase_photons
-./photonjetmaker XjPhi2_pT15_${1} 15 20 3000000
-cp XjPhi3_pT15_${1}* $OUT_FILE
+./photonjetmaker XjPhi4_pT15_${1} 15 20 3000000
+cp XjPhi4_pT15_${1}* $OUT_FILE
 
 
 rm -r $SCRATCH_AREA/fran_chase_photons
