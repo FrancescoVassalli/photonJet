@@ -4,12 +4,21 @@ using namespace std;
 #include <sstream>
 #include <iostream>
 
+inline float deltaPhi(float p, float j){
+	float r= Scalar(TMath::Abs(p-j));
+	if (r>TMath::Pi())
+	{
+		r= r*(-1)+2*TMath::Pi();
+	}
+	return r;
+}
+
 queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* pz,int SIZE){
 	queue<Jet> r;
 	
 	for (int i = 0; i < SIZE; ++i)
 	{
-		if (TMath::Abs(jetphi[i]-photonPhi)>7.0*TMath::Pi()/8.0)
+		if (deltaPhi(photonPhi,jetphi[i])>7.0*TMath::Pi()/8.0)
 		{
 			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i],pz[i]));
 			
