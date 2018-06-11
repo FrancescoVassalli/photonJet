@@ -352,8 +352,10 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   	/* varibles for the TTree*/
   	int position,end,jetend;
   	bool jetquark;
+	float pthat;
   	interestXj->Branch("photonPosition",&position);
   	interestXj->Branch("direct", &jetquark);
+	interestXj->Branch("pTHat", &pthat);
   	interestXj->Branch("end",&end);
   	interestXj->Branch("jetend",&jetend);
   	/* generation loop*/
@@ -387,6 +389,7 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR,jetm,jetpz);
   				/* fill the non vector*/
   				jetquark=isDirect(pythiaengine.info.code());
+				pthat=pythiaengine.info.pTHat();
   				interestXj->Fill();
      			break;
     		}
