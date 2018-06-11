@@ -310,9 +310,9 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   	pythiaengine.readString(pTHat);
   	pythiaengine.init();
   	/* Tbranching  */
-  	SlowJet *antikT2 = new SlowJet(-1,.4,gammaCut,2,2,1); 
-  	SlowJet *antikT3 = new SlowJet(-1,.4,gammaCut,3,2,1); 
-  	SlowJet *antikT4 = new SlowJet(-1,.4,gammaCut,4,2,1); 
+  	SlowJet *antikT2 = new SlowJet(-1,.4,10,2,2,1); 
+  	SlowJet *antikT3 = new SlowJet(-1,.4,10,3,2,1); 
+  	SlowJet *antikT4 = new SlowJet(-1,.4,10,4,2,1); 
   	/*int for the TTree*/
   	int status[300];
   	int id[300];
