@@ -207,10 +207,10 @@ void makePlot(queue<XjPhi> mainQ1,queue<XjPhi> mainQ2,queue<XjPhi> mainQ3,queue<
 	TH1F *p_fragG = new TH1F("plot4","",nBins,bins);
 	TH1F *totals = new TH1F("total","",nBins,bins);
 	TLegend *tl =new TLegend(.25,.7,.4,.85);
-	tl->AddEntry(p_fragQ,"frag Quark","p");
-	tl->AddEntry(p_fragG,"frag Gluon","p");
-	tl->AddEntry(p_dircQ,"direct Quark","p");
-	tl->AddEntry(p_dircG,"direct Gluon","p");
+	tl->AddEntry(p_fragQ,"Frag #gamma Quark Jet","p");
+	tl->AddEntry(p_fragG,"Frag #gamma Gluon Jet","p");
+	tl->AddEntry(p_dircQ,"Direct #gamma Quark Jet","p");
+	tl->AddEntry(p_dircG,"Direct #gamma Gluon Jet","p");
 	TH1F* hlist[4];
 	hlist[0]=p_dircQ;
 	hlist[1]=p_dircG;
@@ -257,6 +257,7 @@ void makePlot(queue<XjPhi> mainQ1,queue<XjPhi> mainQ2,queue<XjPhi> mainQ3,queue<
 }
 
 void makePlotJet(queue<XjPhi> mainQ1,queue<XjPhi> mainQ2,queue<XjPhi> mainQ3,queue<XjPhi> mainQ4){
+	cout<<"Sizes 1:"<<mainQ1.size()<<" 2:"<<mainQ2.size()<<" 3:"<<mainQ3.size()<<" 4:"<<mainQ4.size()<<'\n';
 	TCanvas *tc =new TCanvas();
 	const int nBins = 14;
 	double bins[nBins+1] = {10,11,12,13,14,16,18,20,22,26,30,33,40,47,54};
@@ -289,7 +290,7 @@ void makePlotJet(queue<XjPhi> mainQ1,queue<XjPhi> mainQ2,queue<XjPhi> mainQ3,que
 	filltotalJet(totals,mainQ3,30,40);
 	filltotalJet(totals,mainQ4,40,50);
 	cout<<"total filled"<<'\n';
-	printHist(totals);
+	//printHist(totals);
 	TEfficiency *e1 = new TEfficiency(*p_dircQ,*totals);
 	TEfficiency *e2 = new TEfficiency(*p_dircG,*totals);
 	TEfficiency *e3 = new TEfficiency(*p_fragQ,*totals);
@@ -334,6 +335,6 @@ void FlavorTagger(){
 	temp = fileLocation+filename;
 	queue<XjPhi> mainQ4 = handleFile(temp,extension,50);
 	cout<<"Files are loaded"<<'\n';
-	makePlotJet(mainQ1,mainQ2,mainQ3,mainQ4);
+	makePlot(mainQ1,mainQ2,mainQ3,mainQ4);
 	
 }

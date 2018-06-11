@@ -487,8 +487,8 @@ void XjGammaPhiPlotter(){
 	//all->Add("Xj315.root");
 	//plotXjPhi(dirc,frag);
 	queue<XjPhi> mainQ = getXjPhi(all);
-	//plot1D(mainQ);
-	classifyTypeAndFlavorpTg(mainQ);
+	//plot1D(mainQ);s
+	classifyTypeAndFlavorpTJet(mainQ);
 	//plotpTMatched(mainQ);
 	//xjgpT(mainQ);
 	analysisStream<<"end"<<endl;
