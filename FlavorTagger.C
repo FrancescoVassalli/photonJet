@@ -92,7 +92,7 @@ queue<XjPhi> getXjPhi(TChain* tree, float cut){
 		end++; // ends are measured inclusive I want them exclusive
 		jetend++;
 		Photon pTemp=Photon(end,photonPosition,eT,phi,eta,direct,.3); //make a photon
-		if (pTemp.getIsoEt()>3){ //isoEt cut
+		if (pTemp.getIsoEt()>0){ //isoEt cut
 			isocutCount--;
 			jetCutCount--;
 			continue;
@@ -246,6 +246,28 @@ void fillXj(TH1F** hlist,queue<XjPhi> xjPhiQ){ //low inclusive high exclusvie
 	}
 }
 
+void fillDeltaPhi(TH1F** hlist,queue<XjPhi> xjPhiQ){ //low inclusive high exclusvie
+	while(!xjPhiQ.empty())
+	{
+			if (xjPhiQ.front().getPhoton().isDirect()) 
+			{
+				if (xjPhiQ.front().isQuark())
+				{
+					hlist[0]->Fill(xjPhiQ.front().getphi().value);
+				}
+					hlist[1]->Fill(xjPhiQ.front().getphi().value);
+			}
+			else{
+				if (xjPhiQ.front().isQuark())
+				{
+					hlist[2]->Fill(xjPhiQ.front().getphi().value);
+				}
+					hlist[3]->Fill(xjPhiQ.front().getphi().value);
+			}
+		xjPhiQ.pop();
+	}
+}
+
 void plotXj(queue<XjPhi> mainQ1){
 	TCanvas *tc =new TCanvas();
 	const int nBins = 18;
@@ -265,6 +287,7 @@ void plotXj(queue<XjPhi> mainQ1){
 	hlist[3]=p_fragG;
 	makeDifferent(hlist,4);
 	fillXj(hlist,mainQ1);
+	normalizeTotal(hlist,4);
 	gPad->SetLogy();
 	cout<<"plot1 filled"<<'\n';
 
@@ -284,7 +307,41 @@ void plotXj(queue<XjPhi> mainQ1){
 }
 
 void plotDeltaPhi(queue<XjPhi> mainQ1){
+	TCanvas *tc =new TCanvas();
+	const int nBins = 18;
+	TH1F *p_dircQ = new TH1F("plot1","",18,.5,TMath::Pi()); 
+	TH1F *p_dircG = new TH1F("plot2","",18,.5,TMath::Pi());  
+	TH1F *p_fragQ = new TH1F("plot3","",18,.5,TMath::Pi());  
+	TH1F *p_fragG = new TH1F("plot4","",18,.5,TMath::Pi());
+	TLegend *tl =new TLegend(.25,.7,.4,.85);
+	tl->AddEntry(p_fragQ,"frag Quark","p");
+	tl->AddEntry(p_fragG,"frag Gluon","p");
+	tl->AddEntry(p_dircQ,"direct Quark","p");
+	tl->AddEntry(p_dircG,"direct Gluon","p");
+	TH1F* hlist[4];
+	hlist[0]=p_dircQ;
+	hlist[1]=p_dircG;
+	hlist[2]=p_fragQ;
+	hlist[3]=p_fragG;
+	makeDifferent(hlist,4);
+	fillDeltaPhi(hlist,mainQ1);
+	normalizeTotal(hlist,4);
+	gPad->SetLogy();
+	cout<<"plot1 filled"<<'\n';
 
+	/*normalizeBins(hlist,4);
+	THStack *myStack = getStack(hlist,4);
+	myStack->Draw();
+	myStack->GetXaxis()->SetMoreLogLabels();
+	axisTitles(myStack,"pT#gamma GeV","Relative Count");
+	axisTitleOffset(myStack,.8);*/
+	hlist[0]->Draw();
+	//e1->GetXaxis()->SetMoreLogLabels();
+	hlist[0]->SetTitle(";pT-Jet GeV;relative count");
+	hlist[1]->Draw("same");
+	hlist[2]->Draw("same");
+	hlist[3]->Draw("same");
+	tl->Draw();
 }
 
 void makePlot(queue<XjPhi> mainQ1,queue<XjPhi> mainQ2,queue<XjPhi> mainQ3,queue<XjPhi> mainQ4){
@@ -523,5 +580,6 @@ void FlavorTagger(){
 	//makePlotJet(mainQ1,mainQ2,mainQ3,mainQ4);
 	//makeSketch(mainQ2);
 	//jetpTSpectra(mainQ2);
-	plotXj(mainQ1);
+	//plotXj(mainQ1);
+	plotDeltaPhi(mainQ1);
 }
