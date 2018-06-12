@@ -13,8 +13,9 @@ queue<Jet> makeJets(float radius,float photonPhi,float* jetphi,float* jety, floa
 	
 	for (int i = 0; i < SIZE; ++i)
 	{
+		//phi and R cuts
 		if(jetR[i]==radius&&deltaPhi(photonPhi,jetphi[i])>=TMath::Pi()/2){ //make the jets that are the radius I want and far enough in phi space from the photon
-			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i],pz[i]));
+			r.push(Jet(jetpT[i],jetphi[i],jety[i],jetR[i],pz[i],jetm[i]));
 		}
 	}
 
@@ -29,7 +30,7 @@ DiJet makeDiJet(queue<Jet> jQ){
 	else{
 		Jet j1, j2;
 		while(!jQ.empty()){ //get the two highest energy jets 
-			if (jQ.front().getEnergy().value>=j1.getEnergy().value)
+			if (jQ.front().getEnergy().value>j1.getEnergy().value)
 			{
 				j2=j1;
 				j1=jQ.front();
@@ -40,7 +41,9 @@ DiJet makeDiJet(queue<Jet> jQ){
 			}
 			jQ.pop();
 		}
-		return DiJet(j1,j2,true);
+		DiJet r =DiJet(j1,j2,true);
+		//cout<<j1.getEnergy().value<<'\n';
+		return r;
 	}
 }
 
@@ -55,6 +58,8 @@ inline float deltaPhi(Photon p, Jet j){
 
 void plot(TH2F *plot){
 	TCanvas *tc = new TCanvas();
+	tc->SetRightMargin(.15);
+	axisTitles(plot,"#Delta#phi","Total Count");
 	plot->Draw("colz");
 }
 
@@ -89,27 +94,22 @@ void pickR2J2(TChain* tree){
 	tree->SetBranchAddress("jetm",jetm);
 	tree->SetBranchAddress("jetpz",jetpz);
 	tree->SetBranchAddress("jetend",&jetend);
-	int count=0;
-	TH2F *p_r2j2 = new TH2F(getNextPlotName().c_str(),"",18,0,TMath::Pi(),50,0,100); //work on these bins
+	TH2F *p_r2j2 = new TH2F(getNextPlotName().c_str(),"",18,0,TMath::Pi(),20,0,1); //work on these bins
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
 		tree->GetEntry(i);
 		end++; // ends are measured inclusive I want them exclusive
 		jetend++;
 		if(!direct) continue; //directCut
-		Photon pTemp=Photon(end,photonPosition,eT,phi,eta,direct,.3); //make a photon
-		/*if (pTemp.getIsoEt()>3){ //isoEt cut
-			isocutCount--;
-			continue;
-		}*/
-		DiJet dijet = makeDiJet(makeJets(.2,pTemp.getphi().value,jetphi,jety,jetpT,jetR,jetpz,jetm,jetend)); //make all the jets then match
+		//Photon pTemp=Photon(end,photonPosition,eT,phi,eta,direct,.3); //make a photon
+		DiJet dijet = makeDiJet(makeJets(.2,phi[photonPosition],jetphi,jety,jetpT,jetR,jetpz,jetm,jetend)); //make all the jets then match
 		if (dijet) //checks that the event is actually a dijet 
 		{
 			p_r2j2->Fill(dijet.getDeltaPhi(),dijet.getR2J2());
-			cout<<dijet.getDeltaPhi()<<":"<<dijet.getR2J2()<<'\n';
+			//cout<<dijet.getDeltaPhi()<<":"<<dijet.getR2J2()<<'\n';
 		}
 	}
-	cout<<count<<'\n';
+	cout<<"Entries:"<<p_r2j2->GetEntries()<<'\n';
 	plot(p_r2j2);
 }
 
@@ -125,10 +125,10 @@ void handleFile(string name, string extension, int filecount){
 }
 
 void R2J2(){
-	string fileLocation = "";
-	string filename = "XjPhi3_pT5_";
+	string fileLocation = "/home/user/Droptemp/XjPhi3/";
+	string filename = "XjPhi3_pT15_";
 	string extension = ".root";
 	string temp = fileLocation+filename;
-	handleFile(temp,extension,500);
+	handleFile(temp,extension,100);
 
 }
