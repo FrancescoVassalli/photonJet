@@ -5,7 +5,7 @@ using namespace std;
 
 int plotCount=0;
 inline string getNextPlotName(){
-	return "plot"+string(plotCount++);
+	return "plot"+to_string(plotCount++);
 }
 
 queue<Jet> makeJets(float radius,float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* pz, float* jetm,int SIZE){
@@ -21,10 +21,10 @@ queue<Jet> makeJets(float radius,float photonPhi,float* jetphi,float* jety, floa
 	return r;
 }
 
-Dijet makeDijet(queue<Jet> jQ){
+DiJet makeDiJet(queue<Jet> jQ){
 	if (jQ.size()<2)
 	{
-		return Dijet(false);
+		return DiJet(false);
 	}
 	else{
 		Jet j1, j2;
@@ -40,7 +40,7 @@ Dijet makeDijet(queue<Jet> jQ){
 			}
 			jQ.pop();
 		}
-		return Dijet(j1,j2,true);
+		return DiJet(j1,j2,true);
 	}
 }
 
@@ -54,7 +54,8 @@ inline float deltaPhi(Photon p, Jet j){
 }
 
 void plot(TH2F *plot){
-
+	TCanvas *tc = new TCanvas();
+	plot->Draw("colz");
 }
 
 void pickR2J2(TChain* tree){
@@ -88,9 +89,8 @@ void pickR2J2(TChain* tree){
 	tree->SetBranchAddress("jetm",jetm);
 	tree->SetBranchAddress("jetpz",jetpz);
 	tree->SetBranchAddress("jetend",&jetend);
-
-	TCanvas *tc =new TCanvas();
-	TH1F *p_r2j2 = new TH2F(getNextPlotName().c_str(),"",18,0,TMath::Pi(),20,0,2); //work on these bins
+	int count=0;
+	TH2F *p_r2j2 = new TH2F(getNextPlotName().c_str(),"",18,0,TMath::Pi(),50,0,100); //work on these bins
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
 		tree->GetEntry(i);
@@ -102,12 +102,14 @@ void pickR2J2(TChain* tree){
 			isocutCount--;
 			continue;
 		}*/
-		Dijet dijet = makeDijet(makeJets(.2,pTemp.getphi().value,jetphi,jety,jetpT,jetR,jetpz,jetm,jetend)); //make all the jets then match
+		DiJet dijet = makeDiJet(makeJets(.2,pTemp.getphi().value,jetphi,jety,jetpT,jetR,jetpz,jetm,jetend)); //make all the jets then match
 		if (dijet) //checks that the event is actually a dijet 
 		{
 			p_r2j2->Fill(dijet.getDeltaPhi(),dijet.getR2J2());
+			cout<<dijet.getDeltaPhi()<<":"<<dijet.getR2J2()<<'\n';
 		}
 	}
+	cout<<count<<'\n';
 	plot(p_r2j2);
 }
 
@@ -127,6 +129,6 @@ void R2J2(){
 	string filename = "XjPhi3_pT5_";
 	string extension = ".root";
 	string temp = fileLocation+filename;
-	handleFile(temp,extension,500,10);
+	handleFile(temp,extension,500);
 
 }

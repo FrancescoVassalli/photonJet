@@ -683,18 +683,7 @@ public:
 		energy = Scalar(calculateEnergy(pz));
 		eta= Scalar(calculateEta(_pT,pz));
 	}
-	~Jet(){
-		if (next!=NULL)
-		{
-			delete next;
-			next =NULL;
-		}
-		if (pair!=NULL)
-		{
-			delete pair;
-			pair=NULL;
-		}
-	}
+	~Jet(){	}
 	void setMult(int m){
 		mult=m;
 	}
@@ -729,6 +718,9 @@ public:
 	Scalar getr(){
 		return r;
 	}
+	Scalar getEnergy(){
+		return energy;
+	}
 	Scalar operator/(float s){ 
 		return pT/s;
 	}
@@ -761,9 +753,7 @@ private:
 	Scalar eta;
 	int mult=0;
 	Scalar mass;
-	Scalar energy
-	Jet* next=NULL;
-	Jet* pair=NULL;
+	Scalar energy;
 	Parton parton;
 
 	float deltaR(Parton p){
@@ -773,95 +763,8 @@ private:
 		return .5* TMath::Log((TMath::Power(pt*pt+pz*pz,.5)+pt))/((TMath::Power(pt*pt+pz*pz,.5)-pt));
 	}
 	float calculateEnergy(float pz){
-
+		return TMath::Power((pT.value)*(pT.value)+pz*pz+mass.value*mass.value,.5);
 	}
-	
-};
-#endif
-#ifndef DiJet_h
-#define DiJet_h
-class DiJet
-{
-public:
-	DiJet(Jet j1, Jet j2){
-		leading = bigger(j1,j2);
-		subleading=smaller(j1,j2);
-		makeXjPhi();
-		calculateR2J2();
-	}
-	DiJet(Jet j1, Jet j2,bool t){ //for sorted jets 
-		if (t)
-		{
-			isDijet=true;
-			leading=j1;
-			subleading=j2;
-		}
-		else{
-			leading = bigger(j1,j2);
-			subleading=smaller(j1,j2);
-		}
-		makeXjPhi();
-		calculateR2J2();
-	}
-	DiJet(double pt1, double phi1, double pt2,double phi2){
-		if (pt1>pt2)
-		{
-			leading=Jet(pt1,phi1,0,0);
-			subleading=Jet(pt2,phi2,0,0);
-		}
-		else{
-			subleading=Jet(pt1,phi1,0,0);
-			leading=Jet(pt2,phi2,0,0);
-		}
-		makeXjPhi();
-		calculateR2J2();
-	}
-	DiJet(bool f){
-		isDijet=f;
-	}
-	DiJet(){}
-
-	~DiJet(){}
-	Jet getleading(){
-		return leading;
-	}
-	Jet getsubleading(){
-		return subleading;
-	}
-	Photon getPhoton(){
-		return photon;
-	}
-	XjPhi getXjPhi(){
-		return xjphi;
-	}
-	void calculateR2J2(){
-		r2j2 = (leading.getEnergy().value-sublead.getEnergy().value)/(leading.getEnergy().value+subleading.getEnergy().value)
-	}
-	float getR2J2(){
-		return r2j2;
-	}
-	float getDeltaPhi(){
-		return xjphi.getphi().value;
-	}
-	void operator=(DiJet d2){
-		isDijet=(bool)d2;
-		leading=d2.getleading();
-		subleading=d2.getsubleading();
-		xjphi=d2.getXjPhi();
-	}
-	operator bool(){
-		return isDijet;
-	}
-private:
-	void makeXjPhi(){
-		xjphi=XjPhi(leading,subleading);
-	}
-	Jet leading;
-	Jet subleading;
-	XjPhi xjphi;
-	float photonDeltaPhi;
-	float r2j2;
-	bool isDijet;
 	
 };
 #endif
@@ -917,6 +820,91 @@ private:
 	Jet jet;
 };
 #endif
+#ifndef DiJet_h
+#define DiJet_h
+class DiJet
+{
+public:
+	DiJet(Jet j1, Jet j2){
+		leading = bigger(j1,j2);
+		subleading=smaller(j1,j2);
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(Jet j1, Jet j2,bool t){ //for sorted jets 
+		if (t)
+		{
+			isDijet=true;
+			leading=j1;
+			subleading=j2;
+		}
+		else{
+			leading = bigger(j1,j2);
+			subleading=smaller(j1,j2);
+		}
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(double pt1, double phi1, double pt2,double phi2){
+		if (pt1>pt2)
+		{
+			leading=Jet(pt1,phi1,0,0);
+			subleading=Jet(pt2,phi2,0,0);
+		}
+		else{
+			subleading=Jet(pt1,phi1,0,0);
+			leading=Jet(pt2,phi2,0,0);
+		}
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(bool f){
+		isDijet=f;
+	}
+	DiJet(){}
+
+	~DiJet(){}
+	Jet getleading(){
+		return leading;
+	}
+	Jet getsubleading(){
+		return subleading;
+	}
+	XjPhi getXjPhi(){
+		return xjphi;
+	}
+	void calculateR2J2(){
+		r2j2 = (leading.getEnergy().value-subleading.getEnergy().value)/(leading.getEnergy().value+subleading.getEnergy().value);
+	}
+	float getR2J2(){
+		return r2j2;
+	}
+	float getDeltaPhi(){
+		return xjphi.getphi().value;
+	}
+	void operator=(DiJet d2){
+		isDijet=(bool)d2;
+		leading=d2.getleading();
+		subleading=d2.getsubleading();
+		xjphi=d2.getXjPhi();
+	}
+	operator bool(){
+		return isDijet;
+	}
+private:
+	void makeXjPhi(){
+		xjphi=XjPhi(leading,subleading);
+	}
+	Jet leading;
+	Jet subleading;
+	XjPhi xjphi;
+	float photonDeltaPhi;
+	float r2j2;
+	bool isDijet;
+	
+};
+#endif
+
 
 float** qXjPhiTo2DArray(queue<XjPhi> in){
 	float** out = new float*[2];
