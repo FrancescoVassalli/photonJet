@@ -290,7 +290,7 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
     return --arrcount;
 
 }
-void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
+void makeData(std::string filename, long nEvents, string pTHat){
 	string hepName = filename+".dat";
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
@@ -310,9 +310,9 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   	pythiaengine.readString(pTHat);
   	pythiaengine.init();
   	/* Tbranching  */
-  	SlowJet *antikT2 = new SlowJet(-1,.4,gammaCut,2,2,1); 
-  	SlowJet *antikT3 = new SlowJet(-1,.4,gammaCut,3,2,1); 
-  	SlowJet *antikT4 = new SlowJet(-1,.4,gammaCut,4,2,1); 
+  	SlowJet *antikT2 = new SlowJet(-1,.4,10,2,2,1); 
+  	SlowJet *antikT3 = new SlowJet(-1,.4,10,3,2,1); 
+  	SlowJet *antikT4 = new SlowJet(-1,.4,10,4,2,1); 
   	/*int for the TTree*/
   	int status[300];
   	int id[300];
