@@ -44,7 +44,8 @@ void swapPointer(T* a, T* b){
     return false;
   }
 }*/
-
+#ifndef DiJet_h
+#define DiJet_h
 class DiJet
 {
 public:
@@ -83,6 +84,7 @@ private:
 	XjPhi xjphi;
 	
 };
+#endif
 
 class PhotonJet
 {

@@ -653,6 +653,7 @@ class Jet
 public:
 	Jet(){
 		pT=0;
+		energy=0;
 	}
 	Jet(float _pT, float _phi, float _y, float _r){
 		this->pT =Scalar(_pT);
@@ -671,6 +672,15 @@ public:
 		this->phi = Scalar(_phi);
 		this->y = Scalar(_y);
 		this->r = Scalar(_r);
+		eta= Scalar(calculateEta(_pT,pz));
+	}
+	Jet(float _pT, float _phi, float _y, float _r, float pz, float mass){ // calculate eta and e
+		this->pT =Scalar(_pT);
+		this->phi = Scalar(_phi);
+		this->y = Scalar(_y);
+		this->r = Scalar(_r);
+		this->mass = Scalar(mass);
+		energy = Scalar(calculateEnergy(pz));
 		eta= Scalar(calculateEta(_pT,pz));
 	}
 	~Jet(){
@@ -750,6 +760,8 @@ private:
 	Scalar r=-1;
 	Scalar eta;
 	int mult=0;
+	Scalar mass;
+	Scalar energy
 	Jet* next=NULL;
 	Jet* pair=NULL;
 	Parton parton;
@@ -760,6 +772,96 @@ private:
 	float calculateEta(float pt, float pz){
 		return .5* TMath::Log((TMath::Power(pt*pt+pz*pz,.5)+pt))/((TMath::Power(pt*pt+pz*pz,.5)-pt));
 	}
+	float calculateEnergy(float pz){
+
+	}
+	
+};
+#endif
+#ifndef DiJet_h
+#define DiJet_h
+class DiJet
+{
+public:
+	DiJet(Jet j1, Jet j2){
+		leading = bigger(j1,j2);
+		subleading=smaller(j1,j2);
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(Jet j1, Jet j2,bool t){ //for sorted jets 
+		if (t)
+		{
+			isDijet=true;
+			leading=j1;
+			subleading=j2;
+		}
+		else{
+			leading = bigger(j1,j2);
+			subleading=smaller(j1,j2);
+		}
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(double pt1, double phi1, double pt2,double phi2){
+		if (pt1>pt2)
+		{
+			leading=Jet(pt1,phi1,0,0);
+			subleading=Jet(pt2,phi2,0,0);
+		}
+		else{
+			subleading=Jet(pt1,phi1,0,0);
+			leading=Jet(pt2,phi2,0,0);
+		}
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(bool f){
+		isDijet=f;
+	}
+	DiJet(){}
+
+	~DiJet(){}
+	Jet getleading(){
+		return leading;
+	}
+	Jet getsubleading(){
+		return subleading;
+	}
+	Photon getPhoton(){
+		return photon;
+	}
+	XjPhi getXjPhi(){
+		return xjphi;
+	}
+	void calculateR2J2(){
+		r2j2 = (leading.getEnergy().value-sublead.getEnergy().value)/(leading.getEnergy().value+subleading.getEnergy().value)
+	}
+	float getR2J2(){
+		return r2j2;
+	}
+	float getDeltaPhi(){
+		return xjphi.getphi().value;
+	}
+	void operator=(DiJet d2){
+		isDijet=(bool)d2;
+		leading=d2.getleading();
+		subleading=d2.getsubleading();
+		xjphi=d2.getXjPhi();
+	}
+	operator bool(){
+		return isDijet;
+	}
+private:
+	void makeXjPhi(){
+		xjphi=XjPhi(leading,subleading);
+	}
+	Jet leading;
+	Jet subleading;
+	XjPhi xjphi;
+	float photonDeltaPhi;
+	float r2j2;
+	bool isDijet;
 	
 };
 #endif
