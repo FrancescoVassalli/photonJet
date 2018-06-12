@@ -35,15 +35,15 @@ queue<Jet> getRJets(float cut,float r,float photonPhi,float* jetphi,float* jety,
 }
 
 inline float deltaPhi(Photon p, Jet j){
-	Scalar r= Scalar(TMath::Abs((p.getphi()-j.getphi()).value));
+	float r= TMath::Abs((p.getphi()-j.getphi()).value);
 	if (r>TMath::Pi())
 	{
 		r= r*(-1)+2*TMath::Pi();
 	}
-	return r.value;
+	return r;
 }
 
-void getDeltaPhi(TChain* tree, queue<float>* deltaPhiFrag, queue<float>* deltaPhiDirc){
+void getDeltaPhi(TChain* tree){
 	float eT[300];
 	float phi[300];
 	float eta[300];
@@ -75,7 +75,14 @@ void getDeltaPhi(TChain* tree, queue<float>* deltaPhiFrag, queue<float>* deltaPh
 	tree->SetBranchAddress("jetpz",jetpz);
 	tree->SetBranchAddress("jetend",&jetend);
 	int isocutCount=tree->GetEntries();
-	int jetCutCount=tree->GetEntries();
+	TCanvas *tc =new TCanvas();
+	TH1F *p_dircQ = new TH1F("plot1","",18,.5,TMath::Pi()); 
+	TH1F *p_fragQ = new TH1F("plot3","",18,.5,TMath::Pi());
+	TLegend *tl =new TLegend(.25,.7,.4,.85);
+	makeDifferent(p_fragQ,1);
+	tl->AddEntry(p_fragQ,"frag","p");
+	tl->AddEntry(p_dircQ,"direct","p");
+	cout<<"here"<<endl;
 	for (int i = 0; i < tree->GetEntries(); ++i)
 	{
 		tree->GetEntry(i);
@@ -84,54 +91,27 @@ void getDeltaPhi(TChain* tree, queue<float>* deltaPhiFrag, queue<float>* deltaPh
 		Photon pTemp=Photon(end,photonPosition,eT,phi,eta,direct,.3); //make a photon
 		if (pTemp.getIsoEt()>3){ //isoEt cut
 			isocutCount--;
-			jetCutCount--;
 			continue;
 		}
 		queue<Jet> jTQ;
+		float cut=0;
 		jTQ= getRJets(cut,.4,pTemp.getphi().value,jetphi,jety,jetpT,jetR,jetpz,jetend); //make all the jets then match
 		while (!jTQ.empty()) //for all the jets of the radius
 		{
 			if (direct)
 			{
-				deltaPhiDirc->push(deltaPhi(pTemp,jTQ.front()));
+				p_dircQ->Fill(deltaPhi(pTemp,jTQ.front()));
 			}
-			else deltaPhiFrag->push(deltaPhi(pTemp,jTQ.front()));
+			else p_fragQ->Fill(deltaPhi(pTemp,jTQ.front()));
 			jTQ.pop();
 		}
-		else jetCutCount--;
 	}
-	tree->ResetBranchAddresses();
-}
-
-void plotDeltaPhi(queue<float> dirc, queue<float> frag){
-	TCanvas *tc =new TCanvas();
-	const int nBins = 18;
-	TH1F *p_dircQ = new TH1F("plot1","",18,.5,TMath::Pi()); 
-	TH1F *p_fragQ = new TH1F("plot3","",18,.5,TMath::Pi());  
-	TLegend *tl =new TLegend(.25,.7,.4,.85);
-	tl->AddEntry(p_fragQ,"frag","p");
-	tl->AddEntry(p_dircQ,"direct","p");
-	TH1F* hlist[4];
-	hlist[0]=p_dircQ;
-	hlist[2]=p_fragQ;
-	makeDifferent(hlist,2);
-	while(!dirc.empty()){
-		p_dircQ->Fill(dirc.front());
-		dirc.pop();
-	}
-	while(!frag.empty()){
-		p_fragQ->Fill(frag.front());
-		frag.pop();
-	}
-	normalizeTotal(hlist,2);
 	gPad->SetLogy();
-	cout<<"plot1 filled"<<'\n';
-
-	hlist[0]->Draw();
-	//e1->GetXaxis()->SetMoreLogLabels();
-	hlist[0]->SetTitle(";#Delta#phi;relative count");
-	hlist[1]->Draw("same");
+	p_dircQ->Draw();
+	p_dircQ->SetTitle(";#Delta#phi;relative count");
+	p_fragQ->Draw("same");
 	tl->Draw();
+	tree->ResetBranchAddresses();
 }
 
 void handleFile(string name, string extension, int filecount){
@@ -142,10 +122,7 @@ void handleFile(string name, string extension, int filecount){
 		temp = name+to_string(i)+extension;
 		all->Add(temp.c_str());
 	}
-	queue<float> dirc;
-	queue<float> frag;
-	getDeltaPhi(all,&dirc,&frag);
-	plotDeltaPhi(dirc,frag);
+	getDeltaPhi(all);
 }
 
 void PlotDeltaPhi(){
@@ -157,7 +134,7 @@ string fileLocation = "";
 
 	filename = "XjPhi3_pT15_";
 	temp = fileLocation+filename;
-	queue<XjPhi> mainQ2 = handleFile(temp,extension,100);
+	handleFile(temp,extension,100);
 
 	/*filename = "XjPhi3_pT25_";
 	temp = fileLocation+filename;
@@ -166,6 +143,4 @@ string fileLocation = "";
 	filename = "XjPhi3_pT35_";
 	temp = fileLocation+filename;
 	queue<XjPhi> mainQ4 = handleFile(temp,extension,50,40);*/
-	cout<<"Files are loaded"<<'\n';
-	plotDeltaPhi(mainQ2);
 }
