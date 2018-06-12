@@ -171,12 +171,14 @@ T quadrature(T* a, int SIZE){
 	
 };
 #endif
-
+inline bool inRange(float in, float low, float high){ // inclusive-exclusive
+	return in>=low&&in<high;
+}
 #ifndef Angle_h
 #define Angle_h
 //not sure of all the inheritence rules on virtualization/abstracttion want it to do all the same things as a Scalar but check for <PI b4 all the returns
 class Angle : public Scalar //all the members of Scalar become members of Angle with equal scope
-{
+{ //cannot be used yet it is not correct 
 public:
 	Angle(){
 		value=uncertainty=0;
@@ -323,6 +325,7 @@ public:
 private:
 	inline void makeIn2Pi(){
 		if(value<0) value+=2*TMath::Pi();
+		if (value>2*TMath::Pi()) value-=2*TMath::Pi();
 	}
 };
 #endif
@@ -830,7 +833,7 @@ float** qXjPhiTo2DArray(queue<XjPhi> in){
 }
 
 //takes two angles and returns their difference in Phi must be less than Pi
-float deltaPhi(float i1, float i2){
+inline float deltaPhi(float i1, float i2){
 	float r = TMath::Abs(i1-i2);
 	if (r>TMath::Pi())
 	{

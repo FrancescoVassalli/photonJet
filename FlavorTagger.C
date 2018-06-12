@@ -4,15 +4,8 @@ using namespace std;
 #include <sstream>
 #include <iostream>
 
-inline float deltaPhi(float p, float j){
-	float r= Scalar(TMath::Abs(p-j));
-	if (r>TMath::Pi())
-	{
-		r= r*(-1)+2*TMath::Pi();
-	}
-	return r;
-}
-
+#ifndef	FlavorTagger_h
+#define FlavorTagger_h
 queue<Jet> makeJets(float photonPhi,float* jetphi,float* jety, float* jetpT, float* jetR, float* pz,int SIZE){
 	queue<Jet> r;
 	
@@ -101,7 +94,7 @@ queue<XjPhi> getXjPhi(TChain* tree, float cut){
 		end++; // ends are measured inclusive I want them exclusive
 		jetend++;
 		Photon pTemp=Photon(end,photonPosition,eT,phi,eta,direct,.3); //make a photon
-		if (pTemp.getIsoEt()>0){ //isoEt cut
+		if (pTemp.getIsoEt()>3){ //isoEt cut
 			isocutCount--;
 			jetCutCount--;
 			continue;
@@ -119,23 +112,6 @@ queue<XjPhi> getXjPhi(TChain* tree, float cut){
 	}
 	tree->ResetBranchAddresses();
 	return xjPhiQ;
-}
-
-queue<XjPhi> handleFile(string name, string extension, int filecount, float cut){
-	TChain *all = new TChain("interest");
-	string temp;
-	for (int i = 0; i < filecount; ++i)
-	{
-		temp = name+to_string(i)+extension;
-		all->Add(temp.c_str());
-	}
-	queue<XjPhi> mainQ1 = getXjPhi(all,cut);
-	delete all;
-	return mainQ1;
-}
-
-inline bool inRange(float in, float low, float high){ // inclusive-exclusive
-	return in>=low&&in<high;
 }
 
 void fillPlot(TH1F** hlist,queue<XjPhi> xjPhiQ, float low, float high){ //low inclusive high exclusvie
@@ -297,7 +273,7 @@ void plotXj(queue<XjPhi> mainQ1){
 	makeDifferent(hlist,4);
 	fillXj(hlist,mainQ1);
 	normalizeTotal(hlist,4);
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	cout<<"plot1 filled"<<'\n';
 
 	/*normalizeBins(hlist,4);
@@ -315,13 +291,13 @@ void plotXj(queue<XjPhi> mainQ1){
 	tl->Draw();
 }
 
-void plotDeltaPhi(queue<XjPhi> mainQ1){
+void plotXj(queue<XjPhi> mainQ1, queue<XjPhi> mainQ2, queue<XjPhi> mainQ3, queue<XjPhi> mainQ4){
 	TCanvas *tc =new TCanvas();
 	const int nBins = 18;
-	TH1F *p_dircQ = new TH1F("plot1","",18,.5,TMath::Pi()); 
-	TH1F *p_dircG = new TH1F("plot2","",18,.5,TMath::Pi());  
-	TH1F *p_fragQ = new TH1F("plot3","",18,.5,TMath::Pi());  
-	TH1F *p_fragG = new TH1F("plot4","",18,.5,TMath::Pi());
+	TH1F *p_dircQ = new TH1F("plot1","",18,0,1.8); 
+	TH1F *p_dircG = new TH1F("plot2","",18,0,1.8);  
+	TH1F *p_fragQ = new TH1F("plot3","",18,0,1.8);  
+	TH1F *p_fragG = new TH1F("plot4","",18,0,1.8);
 	TLegend *tl =new TLegend(.25,.7,.4,.85);
 	tl->AddEntry(p_fragQ,"frag Quark","p");
 	tl->AddEntry(p_fragG,"frag Gluon","p");
@@ -333,19 +309,15 @@ void plotDeltaPhi(queue<XjPhi> mainQ1){
 	hlist[2]=p_fragQ;
 	hlist[3]=p_fragG;
 	makeDifferent(hlist,4);
-	fillDeltaPhi(hlist,mainQ1);
+	fillXj(hlist,mainQ1);
+	fillXj(hlist,mainQ2);
+	fillXj(hlist,mainQ3);
+	fillXj(hlist,mainQ4);
 	normalizeTotal(hlist,4);
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	cout<<"plot1 filled"<<'\n';
 
-	/*normalizeBins(hlist,4);
-	THStack *myStack = getStack(hlist,4);
-	myStack->Draw();
-	myStack->GetXaxis()->SetMoreLogLabels();
-	axisTitles(myStack,"pT#gamma GeV","Relative Count");
-	axisTitleOffset(myStack,.8);*/
 	hlist[0]->Draw();
-	//e1->GetXaxis()->SetMoreLogLabels();
 	hlist[0]->SetTitle(";pT-Jet GeV;relative count");
 	hlist[1]->Draw("same");
 	hlist[2]->Draw("same");
@@ -423,28 +395,28 @@ void makePlotJet(queue<XjPhi> mainQ1,queue<XjPhi> mainQ2,queue<XjPhi> mainQ3,que
 	TH1F *p_fragG = new TH1F("plot4","",nBins,bins);
 	TH1F *totals = new TH1F("total","",nBins,bins);
 	TLegend *tl =new TLegend(.25,.7,.4,.85);
-	tl->AddEntry(p_fragQ,"frag Quark","p");
-	tl->AddEntry(p_fragG,"frag Gluon","p");
-	tl->AddEntry(p_dircQ,"direct Quark","p");
-	tl->AddEntry(p_dircG,"direct Gluon","p");
+	tl->AddEntry(p_fragQ,"Frag #gamma Quark Jet","p");
+	tl->AddEntry(p_fragG,"Frag #gamma Gluon Jet","p");
+	tl->AddEntry(p_dircQ,"Direct #gamma Quark Jet","p");
+	tl->AddEntry(p_dircG,"Direct #gamma Gluon Jet","p");
 	TH1F* hlist[4];
 	hlist[0]=p_dircQ;
 	hlist[1]=p_dircG;
 	hlist[2]=p_fragQ;
 	hlist[3]=p_fragG;
 	makeDifferent(hlist,4);
-	fillPlotJet(hlist,mainQ1,25,35);
+	fillPlotJet(hlist,mainQ1,10,20);
 	cout<<"plot1 filled"<<'\n';
-	fillPlotJet(hlist,mainQ2,35,45);
+	fillPlotJet(hlist,mainQ2,20,30);
 	cout<<"plot2 filled"<<'\n';
-	fillPlotJet(hlist,mainQ3,45,55);
+	fillPlotJet(hlist,mainQ3,30,40);
 	cout<<"plot3 filled"<<'\n';
-	fillPlotJet(hlist,mainQ4,55,900);
+	fillPlotJet(hlist,mainQ4,40,50);
 	cout<<"plot4 filled"<<'\n';
-	filltotalJet(totals,mainQ1,25,35);
-	filltotalJet(totals,mainQ2,35,55);
-	filltotalJet(totals,mainQ3,55,65);
-	filltotalJet(totals,mainQ4,45,55);
+	filltotalJet(totals,mainQ1,10,20);
+	filltotalJet(totals,mainQ2,20,30);
+	filltotalJet(totals,mainQ3,30,40);
+	filltotalJet(totals,mainQ4,40,50);
 	cout<<"total filled"<<'\n';
 	//printHist(totals);
 	TEfficiency *e1 = new TEfficiency(*p_dircQ,*totals);
@@ -469,8 +441,8 @@ void makePlotJet(queue<XjPhi> mainQ1,queue<XjPhi> mainQ2,queue<XjPhi> mainQ3,que
 	e3->Draw("same");
 	e4->Draw("same");
 	tl->Draw();
-
 }
+
 void makeSketch(queue<XjPhi> mainQ1){
 	TCanvas *tc =new TCanvas();
 	const int nBins = 14;
@@ -504,7 +476,6 @@ void makeSketch(queue<XjPhi> mainQ1){
 	makeDifferent(e2,1);
 	makeDifferent(e3,2);
 	makeDifferent(e4,3);
-
 	/*normalizeBins(hlist,4);
 	THStack *myStack = getStack(hlist,4);
 	myStack->Draw();
@@ -567,28 +538,41 @@ public:
 	}
 };*/
 
+queue<XjPhi> handleFile(string name, string extension, int filecount, float cut){
+	TChain *all = new TChain("interest");
+	string temp;
+	for (int i = 0; i < filecount; ++i)
+	{
+		temp = name+to_string(i)+extension;
+		all->Add(temp.c_str());
+	}
+	queue<XjPhi> mainQ1 = getXjPhi(all,cut);
+	delete all;
+	return mainQ1;
+}
+
 void FlavorTagger(){
 	string fileLocation = "";
 	string filename = "XjPhi3_pT5_";
 	string extension = ".root";
 	string temp = fileLocation+filename;
-	queue<XjPhi> mainQ1 = handleFile(temp,extension,500,15);
+	queue<XjPhi> mainQ1 = handleFile(temp,extension,500,10);
 
 	filename = "XjPhi3_pT15_";
 	temp = fileLocation+filename;
-	//queue<XjPhi> mainQ2 = handleFile(temp,extension,100,25);
+	queue<XjPhi> mainQ2 = handleFile(temp,extension,100,20);
 
 	filename = "XjPhi3_pT25_";
 	temp = fileLocation+filename;
-	//queue<XjPhi> mainQ3 = handleFile(temp,extension,50,35);
+	queue<XjPhi> mainQ3 = handleFile(temp,extension,50,30);
 
 	filename = "XjPhi3_pT35_";
 	temp = fileLocation+filename;
-	//queue<XjPhi> mainQ4 = handleFile(temp,extension,50,45);
+	queue<XjPhi> mainQ4 = handleFile(temp,extension,50,40);
 	cout<<"Files are loaded"<<'\n';
-	//makePlotJet(mainQ1,mainQ2,mainQ3,mainQ4);
+	makePlotJet(mainQ1,mainQ2,mainQ3,mainQ4);
 	//makeSketch(mainQ2);
 	//jetpTSpectra(mainQ2);
-	//plotXj(mainQ1);
-	plotDeltaPhi(mainQ1);
+	//plotXj(mainQ1, mainQ2, mainQ3, mainQ4);
 }
+#endif
