@@ -17,12 +17,6 @@ using namespace std;
 #include "Utils.C" 
 #include "TROOT.h"
 
-#ifdef __MAKECINT__
-#pragma link C++ class vector<float>+;
-#endif
-
-//%ROOT_COMMON=-L$(ROOTSYS)/lib -wl,-rpath,$(ROOTSYS)/lib
-
 float deltaPhi(Photon p, Jet j);
 float deltaR(Parton,Jet);
 
@@ -32,59 +26,6 @@ void swapPointer(T* a, T* b){
 	a=b;
 	b=t;
 }
-
-/*inline bool isDirect(int i)
-{
-  if(i > 200 and i < 267)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}*/
-#ifndef DiJet_h
-#define DiJet_h
-class DiJet
-{
-public:
-	DiJet(Jet j1, Jet j2){
-		leading = bigger(j1,j2);
-		subleading=smaller(j1,j2);
-		
-	}
-	DiJet(double pt1, double phi1, double pt2,double phi2){
-		if (pt1>pt2)
-		{
-			leading=Jet(pt1,phi1,0,0);
-			subleading=Jet(pt2,phi2,0,0);
-		}
-		else{
-			subleading=Jet(pt1,phi1,0,0);
-			leading=Jet(pt2,phi2,0,0);
-		}
-		makeXjPhi();
-	}
-	DiJet(){}
-
-	~DiJet(){}
-	Jet getleading(){
-		return leading;
-	}
-	Jet getsubleading(){
-		return subleading;
-	}
-private:
-	void makeXjPhi(){
-		xjphi=XjPhi(leading,subleading);
-	}
-	Jet leading;
-	Jet subleading;
-	XjPhi xjphi;
-	
-};
-#endif
 
 class PhotonJet
 {
