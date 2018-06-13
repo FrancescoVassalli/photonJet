@@ -234,10 +234,20 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
 
 }
 
-bool piZeroFilter(Event e, int position){ //return true if either mother is a piZero
+inline bool piZeroFilter(Event e, int position){ //return true if either mother is a piZero
 	int mother1 = e[position].mother1();
 	int mother2 = e[position].mother2();
-	return e[mother1].id()==111 || e[mother2].id()==111
+	return e[mother1].id()==111 || e[mother2].id()==111;
+}
+
+inline bool isQuark(int ID){
+		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
+}
+
+inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if both parents are either a quark or gluon
+	int mother1 = e[position].mother1();
+	int mother2 = e[position].mother2();
+	return (isQuark(e[mother1].id())||e[mother1].id()==21) && (e[mother2].id()==21||isQuark(e[mother2].id()));
 }
 
 void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP){
@@ -324,10 +334,7 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
     			jetquark=isDirect(pythiaengine.info.code());
-    			if (!jetquark)
-    			{
-    				if(piZeroFilter(pythiaengine.event,i)) continue;
-    			}
+    			if (!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i))continue; // remove the frag photons that do not come from a quark or gluon
     			if (genHEP)
     			{
     				HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
