@@ -233,6 +233,13 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
     return --arrcount;
 
 }
+
+bool piZeroFilter(Event e, int position){ //return true if either mother is a piZero
+	int mother1 = e[position].mother1();
+	int mother2 = e[position].mother2();
+	return e[mother1].id()==111 || e[mother2].id()==111
+}
+
 void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP){
 	if (genHEP)
 	{
@@ -286,8 +293,6 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
   	interestXj->Branch("phi",phi,"phi[300]/F");
 	interestXj->Branch("eT",eT,"eT[300]/F");
 	interestXj->Branch("e",e,"e[300]/F");
-  	interestXj->Branch("mother1",&mother1,"mother1[300]/I");
-  	interestXj->Branch("mother2",&mother2,"mother2[300]/I");
   	interestXj->Branch("jety",jety,"jety[200]/F");
   	interestXj->Branch("jetphi",jetphi,"jetphi[200]/F");
   	interestXj->Branch("jetpT", jetpT,"jetpT[200]/F");
@@ -318,6 +323,11 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
     		int finalcount=0;
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
+    			jetquark=isDirect(pythiaengine.info.code());
+    			if (!jetquark)
+    			{
+    				if(piZeroFilter(pythiaengine.event,i)) continue;
+    			}
     			if (genHEP)
     			{
     				HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
@@ -336,7 +346,6 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
   				/*fill the jet vectors*/
   				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR,jetm,jetpz);
   				/* fill the non vector*/
-  				jetquark=isDirect(pythiaengine.info.code());
 				pthat=pythiaengine.info.pTHat();
   				interestXj->Fill();
      			break;
@@ -358,7 +367,7 @@ int main(int argc, char const *argv[] )
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
 	long nEvents =strtol(argv[4],NULL,10);  // 5000000;
-	bool genHEP=false;
+	bool genHEP=true;
 	makeData(fileOut,nEvents, pTHat, gammaCut,genHEP);
 	return 0;
 }
