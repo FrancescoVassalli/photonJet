@@ -376,7 +376,7 @@ protected:
 	float phi;
 	float y;	
 	float eta;
-	bool isQuark(int ID){
+	inline bool isQuark(int ID){
 		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
 	}
 	float eTTopT(float eT, int ID){
