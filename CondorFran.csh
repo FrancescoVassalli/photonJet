@@ -37,7 +37,7 @@ cp  $SOURCE_PHOTONMAKER $SCRATCH_AREA/fran_chase_photons/
 #-------------------                                                                                                                                  
 
 cd $SCRATCH_AREA/fran_chase_photons
-./photonjetmaker XjPhi1_pT5_${1} 5 10 10000000
+./photonjetmaker XjPhi1_pT5_${1} 5 10 20000000
 cp XjPhi1_pT5_${1}* $OUT_FILE
 
 
