@@ -251,17 +251,14 @@ inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if bot
 }
 
 void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP){
-	if (genHEP)
-	{
-		string hepName = filename+".dat";
-		HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
-    	HepMC::IO_GenEvent ascii_io(hepName, std::ios::out); //file where HepMC events will be stored.
-	}
+  	using namespace HepMC;
+	string hepName = filename+".dat";
+	HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
+    HepMC::IO_GenEvent ascii_io(hepName, std::ios::out); //file where HepMC events will be stored.
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* interestXj = new TTree("interest","interest");
   	interestXj->SetAutoSave(30000);
-  	using namespace HepMC;
 	/*pythia set up*/
     Pythia pythiaengine;
     pythiaengine.readString("Beams:eCM = 200."); //LHC VS RHIC
