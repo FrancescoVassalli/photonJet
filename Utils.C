@@ -427,7 +427,7 @@ T smaller(T x, T y){
 	}
 }
 
-bool isDirect(int i)
+inline bool isDirect(int i)
 {
   if(i > 200 and i < 267)
   {

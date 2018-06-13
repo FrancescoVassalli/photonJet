@@ -292,18 +292,21 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
     return --arrcount;
 
 }
-void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
-	string hepName = filename+".dat";
+void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP){
+	if (genHEP)
+	{
+		string hepName = filename+".dat";
+		HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
+    	HepMC::IO_GenEvent ascii_io(hepName, std::ios::out); //file where HepMC events will be stored.
+	}
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* interestXj = new TTree("interest","interest");
-  	interestXj->SetAutoSave(3000);
+  	interestXj->SetAutoSave(30000);
   	using namespace HepMC;
-    HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
-    HepMC::IO_GenEvent ascii_io(hepName, std::ios::out); //file where HepMC events will be stored.
 	/*pythia set up*/
     Pythia pythiaengine;
-    pythiaengine.readString("Beams:eCM = 50200."); //LHC VS RHIC
+    pythiaengine.readString("Beams:eCM = 200."); //LHC VS RHIC
   	pythiaengine.readString("promptphoton:all = on");
  	pythiaengine.readString("HardQCD:all = on");
   	pythiaengine.readString("Random::setSeed = on");
@@ -374,11 +377,13 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
     		int finalcount=0;
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
-          		HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
-          		ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
-          		ascii_io << hepmcevt; //write event to file 
-          		delete hepmcevt; //delete event so it can be redeclared next time
-    		
+    			if (genHEP)
+    			{
+    				HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
+          			ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
+          			ascii_io << hepmcevt;//write event to file
+          			delete hepmcevt; //delete event so it can be redeclared next time
+    			}
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
     			antikT4->analyze(pythiaengine.event);
@@ -412,7 +417,8 @@ int main(int argc, char const *argv[] )
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
 	long nEvents =strtol(argv[4],NULL,10);  // 5000000;
-	makeData(fileOut,nEvents, pTHat, gammaCut);
+	bool genHEP=false;
+	makeData(fileOut,nEvents, pTHat, gammaCut,genHEP);
 	return 0;
 }
 
