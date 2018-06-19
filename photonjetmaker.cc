@@ -259,15 +259,11 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
   	using namespace HepMC;
 	string hepNameDirect = filename+"_direct"+".dat";    //filenames
 	string hepNameFrag = filename+"_frag"+".dat";
-	string filename_direct = stfilename+="_direct.root";
-	string filename_frag = stfilename+="_frag.root";
+	filename+=".root";
 
-	TFile* f_direct = new TFile(filename_direct.c_str(),"RECREATE");
-  	TTree* interestXj_direct = new TTree("interest","interest");
-  	interestXj_direct->SetAutoSave(3000);
-  	TFile* f_frag = new TFile(filename_frag.c_str(),"RECREATE");
-  	TTree* interestXj_frag= new TTree("interest","interest");
-  	interestXj_frag->SetAutoSave(3000);
+	TFile* f = new TFile(filename.c_str(),"RECREATE");
+  	TTree* interestXj = new TTree("interest","interest");
+  	interestXj->SetAutoSave(3000);
 
   	using namespace HepMC;
     HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
@@ -346,24 +342,22 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
     		int finalcount=0;
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
-<<<<<<< HEAD
-          		HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
-			HepMC::GenEvent* hepmcevtdirect = new HepMC::GenEvent(); //create HepMC "event" for direct photons
-          		ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
-          		ascii_io << hepmcevt; //write event to file 
-          		delete hepmcevt; //delete event so it can be redeclared next time
-    		
-=======
     			jetquark=isDirect(pythiaengine.info.code());
-    			if (!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i))continue; // remove the frag photons that do not come from a quark or gluon
-    			if (genHEP)
+    			if(!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i)&&genHEP==true ) // remove the frag photons that do not come from a quark or gluon
     			{
-    				HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
-          			ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
-          			ascii_io << hepmcevt;//write event to file
-          			delete hepmcevt; //delete event so it can be redeclared next time
+    				HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
+          			ToHepMC.fill_next_event( pythiaengine, hepmcevtfrag ); //convert event from pythia to HepMC
+          			ascii_io_frag << hepmcevtfrag;//write event to file
+          			delete hepmcevtfrag; //delete event so it can be redeclared next time
     			}
->>>>>>> fbebc079a91884cce2549a5bd3cc064f5684a6bf
+    			if(jetquark==true&&genHEP==true) //generate direct events
+    			{
+    				HepMC::GenEvent* hepmcevtdirect = new HepMC::GenEvent(); //create HepMC "event" for direct photons
+          			ToHepMC.fill_next_event( pythiaengine, hepmcevtdirect ); //convert event from pythia to HepMC
+          			ascii_io_direct << hepmcevtdirect;//write event to file
+          			delete hepmcevtdirect; //delete event so it can be redeclared next time
+    			}
+
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
     			antikT4->analyze(pythiaengine.event);
