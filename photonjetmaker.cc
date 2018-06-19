@@ -255,7 +255,8 @@ inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if bot
 	return (isQuark(e[mother1].id())||e[mother1].id()==21) && (e[mother2].id()==21||isQuark(e[mother2].id()));
 }
 
-void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP){
+void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP)
+{
   	using namespace HepMC;
 	string hepNameDirect = filename+"_direct"+".dat";    //filenames
 	string hepNameFrag = filename+"_frag"+".dat";
