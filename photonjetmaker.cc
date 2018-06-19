@@ -248,6 +248,7 @@ inline bool isQuark(int ID){
 inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if both parents are either a quark or gluon
 	int mother1 = e[position].mother1();
 	int mother2 = e[position].mother2();
+	cout<<"checking for pion"<<endl;
 	return (isQuark(e[mother1].id())||e[mother1].id()==21) && (e[mother2].id()==21||isQuark(e[mother2].id()));
 }
 
