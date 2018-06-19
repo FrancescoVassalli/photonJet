@@ -17,12 +17,6 @@ using namespace std;
 #include "Utils.C" 
 #include "TROOT.h"
 
-#ifdef __MAKECINT__
-#pragma link C++ class vector<float>+;
-#endif
-
-//%ROOT_COMMON=-L$(ROOTSYS)/lib -wl,-rpath,$(ROOTSYS)/lib
-
 float deltaPhi(Photon p, Jet j);
 float deltaR(Parton,Jet);
 
@@ -32,57 +26,6 @@ void swapPointer(T* a, T* b){
 	a=b;
 	b=t;
 }
-
-/*inline bool isDirect(int i)
-{
-  if(i > 200 and i < 267)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}*/
-
-class DiJet
-{
-public:
-	DiJet(Jet j1, Jet j2){
-		leading = bigger(j1,j2);
-		subleading=smaller(j1,j2);
-		
-	}
-	DiJet(double pt1, double phi1, double pt2,double phi2){
-		if (pt1>pt2)
-		{
-			leading=Jet(pt1,phi1,0,0);
-			subleading=Jet(pt2,phi2,0,0);
-		}
-		else{
-			subleading=Jet(pt1,phi1,0,0);
-			leading=Jet(pt2,phi2,0,0);
-		}
-		makeXjPhi();
-	}
-	DiJet(){}
-
-	~DiJet(){}
-	Jet getleading(){
-		return leading;
-	}
-	Jet getsubleading(){
-		return subleading;
-	}
-private:
-	void makeXjPhi(){
-		xjphi=XjPhi(leading,subleading);
-	}
-	Jet leading;
-	Jet subleading;
-	XjPhi xjphi;
-	
-};
 
 class PhotonJet
 {
@@ -290,19 +233,51 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
     return --arrcount;
 
 }
+<<<<<<< HEAD
 void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
 	string hepNameDirect = filename+"_direct"+".dat";
 	string hepNameFrag = filename+"_frag"+".dat";
-	filename+=".root";
-	TFile* f = new TFile(filename.c_str(),"RECREATE");
-  	TTree* interestXj = new TTree("interest","interest");
-  	interestXj->SetAutoSave(3000);
+=======
+
+inline bool piZeroFilter(Event e, int position){ //return true if either mother is a piZero
+	int mother1 = e[position].mother1();
+	int mother2 = e[position].mother2();
+	return e[mother1].id()==111 || e[mother2].id()==111;
+}
+
+inline bool isQuark(int ID){
+		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
+}
+
+inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if both parents are either a quark or gluon
+	int mother1 = e[position].mother1();
+	int mother2 = e[position].mother2();
+	return (isQuark(e[mother1].id())||e[mother1].id()==21) && (e[mother2].id()==21||isQuark(e[mother2].id()));
+}
+
+void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP){
+  	using namespace HepMC;
+	string hepNameDirect = filename+"_direct"+".dat";    //filenames
+	string hepNameFrag = filename+"_frag"+".dat";
+	string filename_direct = stfilename+="_direct.root";
+	string filename_frag = stfilename+="_frag.root";
+
+	TFile* f_direct = new TFile(filename_direct.c_str(),"RECREATE");
+  	TTree* interestXj_direct = new TTree("interest","interest");
+  	interestXj_direct->SetAutoSave(3000);
+  	TFile* f_frag = new TFile(filename_frag.c_str(),"RECREATE");
+  	TTree* interestXj_frag= new TTree("interest","interest");
+  	interestXj_frag->SetAutoSave(3000);
+
   	using namespace HepMC;
     HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
-    HepMC::IO_GenEvent ascii_io(hepName, std::ios::out); //file where HepMC events will be stored.
+    HepMC::IO_GenEvent ascii_io_direct(hepNameDirect, std::ios::out); //file where HepMC events will be stored.
+    HepMC::IO_GenEvent ascii_io_frag(hepNameFrag, std::ios::out); //file where HepMC events will be stored.
+
+
 	/*pythia set up*/
     Pythia pythiaengine;
-    pythiaengine.readString("Beams:eCM = 200.");
+    pythiaengine.readString("Beams:eCM = 200."); //LHC VS RHIC
   	pythiaengine.readString("promptphoton:all = on");
  	pythiaengine.readString("HardQCD:all = on");
   	pythiaengine.readString("Random::setSeed = on");
@@ -341,8 +316,6 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   	interestXj->Branch("phi",phi,"phi[300]/F");
 	interestXj->Branch("eT",eT,"eT[300]/F");
 	interestXj->Branch("e",e,"e[300]/F");
-  	interestXj->Branch("mother1",&mother1,"mother1[300]/I");
-  	interestXj->Branch("mother2",&mother2,"mother2[300]/I");
   	interestXj->Branch("jety",jety,"jety[200]/F");
   	interestXj->Branch("jetphi",jetphi,"jetphi[200]/F");
   	interestXj->Branch("jetpT", jetpT,"jetpT[200]/F");
@@ -373,12 +346,24 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
     		int finalcount=0;
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
+<<<<<<< HEAD
           		HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
 			HepMC::GenEvent* hepmcevtdirect = new HepMC::GenEvent(); //create HepMC "event" for direct photons
           		ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
           		ascii_io << hepmcevt; //write event to file 
           		delete hepmcevt; //delete event so it can be redeclared next time
     		
+=======
+    			jetquark=isDirect(pythiaengine.info.code());
+    			if (!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i))continue; // remove the frag photons that do not come from a quark or gluon
+    			if (genHEP)
+    			{
+    				HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
+          			ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
+          			ascii_io << hepmcevt;//write event to file
+          			delete hepmcevt; //delete event so it can be redeclared next time
+    			}
+>>>>>>> fbebc079a91884cce2549a5bd3cc064f5684a6bf
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
     			antikT4->analyze(pythiaengine.event);
@@ -390,7 +375,6 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
   				/*fill the jet vectors*/
   				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR,jetm,jetpz);
   				/* fill the non vector*/
-  				jetquark=isDirect(pythiaengine.info.code());
 				pthat=pythiaengine.info.pTHat();
   				interestXj->Fill();
      			break;
@@ -412,7 +396,8 @@ int main(int argc, char const *argv[] )
 	string pTHat = string(argv[2]);
 	float gammaCut= strtod(argv[3],NULL);
 	long nEvents =strtol(argv[4],NULL,10);  // 5000000;
-	makeData(fileOut,nEvents, pTHat, gammaCut);
+	bool genHEP=true;
+	makeData(fileOut,nEvents, pTHat, gammaCut,genHEP);
 	return 0;
 }
 

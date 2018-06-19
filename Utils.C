@@ -171,12 +171,14 @@ T quadrature(T* a, int SIZE){
 	
 };
 #endif
-
+inline bool inRange(float in, float low, float high){ // inclusive-exclusive
+	return in>=low&&in<high;
+}
 #ifndef Angle_h
 #define Angle_h
 //not sure of all the inheritence rules on virtualization/abstracttion want it to do all the same things as a Scalar but check for <PI b4 all the returns
 class Angle : public Scalar //all the members of Scalar become members of Angle with equal scope
-{
+{ //cannot be used yet it is not correct 
 public:
 	Angle(){
 		value=uncertainty=0;
@@ -323,6 +325,7 @@ public:
 private:
 	inline void makeIn2Pi(){
 		if(value<0) value+=2*TMath::Pi();
+		if (value>2*TMath::Pi()) value-=2*TMath::Pi();
 	}
 };
 #endif
@@ -373,7 +376,7 @@ protected:
 	float phi;
 	float y;	
 	float eta;
-	bool isQuark(int ID){
+	inline bool isQuark(int ID){
 		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
 	}
 	float eTTopT(float eT, int ID){
@@ -424,7 +427,7 @@ T smaller(T x, T y){
 	}
 }
 
-bool isDirect(int i)
+inline bool isDirect(int i)
 {
   if(i > 200 and i < 267)
   {
@@ -650,6 +653,7 @@ class Jet
 public:
 	Jet(){
 		pT=0;
+		energy=0;
 	}
 	Jet(float _pT, float _phi, float _y, float _r){
 		this->pT =Scalar(_pT);
@@ -670,18 +674,16 @@ public:
 		this->r = Scalar(_r);
 		eta= Scalar(calculateEta(_pT,pz));
 	}
-	~Jet(){
-		if (next!=NULL)
-		{
-			delete next;
-			next =NULL;
-		}
-		if (pair!=NULL)
-		{
-			delete pair;
-			pair=NULL;
-		}
+	Jet(float _pT, float _phi, float _y, float _r, float pz, float mass){ // calculate eta and e
+		this->pT =Scalar(_pT);
+		this->phi = Scalar(_phi);
+		this->y = Scalar(_y);
+		this->r = Scalar(_r);
+		this->mass = Scalar(mass);
+		energy = Scalar(calculateEnergy(pz));
+		eta= Scalar(calculateEta(_pT,pz));
 	}
+	~Jet(){	}
 	void setMult(int m){
 		mult=m;
 	}
@@ -716,6 +718,9 @@ public:
 	Scalar getr(){
 		return r;
 	}
+	Scalar getEnergy(){
+		return energy;
+	}
 	Scalar operator/(float s){ 
 		return pT/s;
 	}
@@ -747,8 +752,8 @@ private:
 	Scalar r=-1;
 	Scalar eta;
 	int mult=0;
-	Jet* next=NULL;
-	Jet* pair=NULL;
+	Scalar mass;
+	Scalar energy;
 	Parton parton;
 
 	float deltaR(Parton p){
@@ -756,6 +761,9 @@ private:
 	}
 	float calculateEta(float pt, float pz){
 		return .5* TMath::Log((TMath::Power(pt*pt+pz*pz,.5)+pt))/((TMath::Power(pt*pt+pz*pz,.5)-pt));
+	}
+	float calculateEnergy(float pz){
+		return TMath::Power((pT.value)*(pT.value)+pz*pz+mass.value*mass.value,.5);
 	}
 	
 };
@@ -812,6 +820,91 @@ private:
 	Jet jet;
 };
 #endif
+#ifndef DiJet_h
+#define DiJet_h
+class DiJet
+{
+public:
+	DiJet(Jet j1, Jet j2){
+		leading = bigger(j1,j2);
+		subleading=smaller(j1,j2);
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(Jet j1, Jet j2,bool t){ //for sorted jets 
+		if (t)
+		{
+			isDijet=true;
+			leading=j1;
+			subleading=j2;
+		}
+		else{
+			leading = bigger(j1,j2);
+			subleading=smaller(j1,j2);
+		}
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(double pt1, double phi1, double pt2,double phi2){
+		if (pt1>pt2)
+		{
+			leading=Jet(pt1,phi1,0,0);
+			subleading=Jet(pt2,phi2,0,0);
+		}
+		else{
+			subleading=Jet(pt1,phi1,0,0);
+			leading=Jet(pt2,phi2,0,0);
+		}
+		makeXjPhi();
+		calculateR2J2();
+	}
+	DiJet(bool f){
+		isDijet=f;
+	}
+	DiJet(){}
+
+	~DiJet(){}
+	Jet getleading(){
+		return leading;
+	}
+	Jet getsubleading(){
+		return subleading;
+	}
+	XjPhi getXjPhi(){
+		return xjphi;
+	}
+	void calculateR2J2(){
+		r2j2 = (leading.getEnergy().value-subleading.getEnergy().value)/(leading.getEnergy().value+subleading.getEnergy().value);
+	}
+	float getR2J2(){
+		return r2j2;
+	}
+	float getDeltaPhi(){
+		return xjphi.getphi().value;
+	}
+	void operator=(DiJet d2){
+		isDijet=(bool)d2;
+		leading=d2.getleading();
+		subleading=d2.getsubleading();
+		xjphi=d2.getXjPhi();
+	}
+	operator bool(){
+		return isDijet;
+	}
+private:
+	void makeXjPhi(){
+		xjphi=XjPhi(leading,subleading);
+	}
+	Jet leading;
+	Jet subleading;
+	XjPhi xjphi;
+	float photonDeltaPhi;
+	float r2j2;
+	bool isDijet;
+	
+};
+#endif
+
 
 float** qXjPhiTo2DArray(queue<XjPhi> in){
 	float** out = new float*[2];
@@ -830,7 +923,7 @@ float** qXjPhiTo2DArray(queue<XjPhi> in){
 }
 
 //takes two angles and returns their difference in Phi must be less than Pi
-float deltaPhi(float i1, float i2){
+inline float deltaPhi(float i1, float i2){
 	float r = TMath::Abs(i1-i2);
 	if (r>TMath::Pi())
 	{
