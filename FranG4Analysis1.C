@@ -78,10 +78,10 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 		v2.SetPtEtaPhiM(eT,eta,phi,0);
 		float reconstructedMass = (pVec+v2).M();
 		bool r = inRange(reconstructedMass,(float).15,(float).13) || inRange(reconstructedMass,(float).538,(float).578);
-		/*if (r)
+		if (r)
 		{
-			ssanl<<reconstructedMass<<'\n';
-		} */
+			cout<<reconstructedMass<<'\n';
+		}
 		return r;
 	}
 	else return false;
@@ -129,7 +129,6 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 	TH2F *recopT = new TH2F(getNextPlotName(&plotcount).c_str(),"",25,10,30,22,0,30);
 	int passCluster=0;
 	int passIso=0;
-	cout<<"Enter file"<<endl;
 	for (int i = 0; i < all->GetEntries(); ++i)
 	{
 		all->GetEntry(i);
@@ -142,7 +141,6 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 			while(photonPosition==-1&&j<Nparticle){//find the photon
 				if (!isneg99(emcal[j]))
 				{
-					cout<<"Found photonPosition"<<endl;
 					photonPosition=j;
 					TLorentzVector pVec;
 					pVec.SetPtEtaPhiM(eT[photonPosition],eta[photonPosition],phi[photonPosition],0);
@@ -150,8 +148,13 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 					for (int k = 0; k < Nparticle; ++k)
 					{
 						if(k!=photonPosition&&makesPion(pVec,eT[k],eta[k],phi[k],id[k])){
+							cout<<photonPosition<<','<<k<<'\n';
 							photonPosition=-1;
-							cout<<"found pion"<<endl;
+							/*for (int j = 0; j < Nparticle; ++j)
+							{
+								cout<<"Truth"<<j<<": "<<pT[j]<<", "<<phi[j]<<", "<<eta[j]<<", "<<'\n';
+							}*/
+							break;
 						}
 					}
 				}
@@ -180,7 +183,6 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 			ssanl<<truthIso<<", "<<pT[photonPosition]<<'\n';
 			if(truthIso<1){ // truth isolation CUT
 				passIso++;
-				cout<<"passIso"<<endl;
 				pTRatio->Fill(c1.getpT()/pT[photonPosition]);
 				etaRis->Fill(c1.geteta()-eta[photonPosition]);
 				pTRatio2->Fill(pT[photonPosition],c1.getpT()/pT[photonPosition]);
