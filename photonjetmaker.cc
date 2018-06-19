@@ -234,10 +234,6 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
 
 }
 
-void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
-	string hepNameDirect = filename+"_direct"+".dat";
-	string hepNameFrag = filename+"_frag"+".dat";
-
 
 inline bool piZeroFilter(Event e, int position){ //return true if either mother is a piZero
 	int mother1 = e[position].mother1();
