@@ -263,7 +263,8 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
   	interestXj->SetAutoSave(3000);
 
   	using namespace HepMC;
-    HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
+    HepMC::Pythia8ToHepMC ToHepMC_direct;    // Interface for conversion from Pythia8::Event to HepMC event.
+    HepMC::Pythia8ToHepMC ToHepMC_frag;  //frag events
     HepMC::IO_GenEvent ascii_io_direct(hepNameDirect, std::ios::out); //file where HepMC events will be stored.
     HepMC::IO_GenEvent ascii_io_frag(hepNameFrag, std::ios::out); //file where HepMC events will be stored.
 
@@ -340,20 +341,24 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
     			jetquark=isDirect(pythiaengine.info.code());
-    			if(!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i)&&genHEP==true ) // remove the frag photons that do not come from a quark or gluon
+			cout<<"direct or frag: "<<jetquark<<endl;
+			cout<<"not a pion: "<<bothParentQuarkORGluon(pythiaengine.event,i)<<endl;
+    			if(!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i)) // remove the frag photons that do not come from a q 
     			{
     				HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
-          			ToHepMC.fill_next_event( pythiaengine, hepmcevtfrag ); //convert event from pythia to HepMC
+          			ToHepMC_frag.fill_next_event( pythiaengine, hepmcevtfrag ); //convert event from pythia to HepMC
           			ascii_io_frag << hepmcevtfrag;//write event to file
           			delete hepmcevtfrag; //delete event so it can be redeclared next time
+				cout<<"frag"<<endl;
     			}
-    			if(jetquark==true&&genHEP==true) //generate direct events
+    			else if(jetquark) //generate direct events
     			{
     				HepMC::GenEvent* hepmcevtdirect = new HepMC::GenEvent(); //create HepMC "event" for direct photons
-          			ToHepMC.fill_next_event( pythiaengine, hepmcevtdirect ); //convert event from pythia to HepMC
+          			ToHepMC_direct.fill_next_event( pythiaengine, hepmcevtdirect ); //convert event from pythia to HepMC
           			ascii_io_direct << hepmcevtdirect;//write event to file
           			delete hepmcevtdirect; //delete event so it can be redeclared next time
-    			}
+				cout<<"direct"<<endl;
+			}
 
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
