@@ -291,7 +291,8 @@ int fillTreebySlowJet(SlowJet* a1, SlowJet* a2,SlowJet* a3,int* mult, float* y, 
 
 }
 void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
-	string hepName = filename+".dat";
+	string hepNameDirect = filename+"_direct"+".dat";
+	string hepNameFrag = filename+"_frag"+".dat";
 	filename+=".root";
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* interestXj = new TTree("interest","interest");
@@ -372,7 +373,8 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut){
     		int finalcount=0;
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
-          		HepMC::GenEvent* hepmcevt = new HepMC::GenEvent(); //create HepMC "event"
+          		HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
+			HepMC::GenEvent* hepmcevtdirect = new HepMC::GenEvent(); //create HepMC "event" for direct photons
           		ToHepMC.fill_next_event( pythiaengine, hepmcevt ); //convert event from pythia to HepMC
           		ascii_io << hepmcevt; //write event to file 
           		delete hepmcevt; //delete event so it can be redeclared next time
