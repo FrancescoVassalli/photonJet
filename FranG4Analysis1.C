@@ -10,6 +10,8 @@ namespace {
 	stringstream ssanl;
 }
 
+void makeResolution(TH2F* data, float* values, int NVALUES,string title);
+
 inline float recoIso(float em, float cluster, float inner, float outer){
 	return em-cluster+inner+outer;
 }
@@ -77,17 +79,45 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 		TLorentzVector v2;
 		v2.SetPtEtaPhiM(eT,eta,phi,0);
 		float reconstructedMass = (pVec+v2).M();
-		bool r = inRange(reconstructedMass,(float).15,(float).13) || inRange(reconstructedMass,(float).538,(float).578);
-		if (r)
+		bool r = inRange(reconstructedMass,(float).1348,(float).135) || inRange(reconstructedMass,(float).54775,(float).5495);
+		/*if (r)
 		{
 			cout<<reconstructedMass<<'\n';
-		}
+		}*/
 		return r;
 	}
 	else return false;
 }
 
- TH2F* getClusterpT(TChain *all,queue<TH1*> plots){
+void drawPlotRecoetaResid2d(TH1* plot){
+	TCanvas *tc= new TCanvas();
+	tc->SetRightMargin(.15);
+	plot->Scale(1/plot->Integral());
+	gPad->SetLogz();
+	plot->Draw("colz");
+	axisTitles(plot,"pT truth","eta reco-truth");
+}
+
+void drawPlotRecopTResid2D(TH1* plot){
+	TCanvas *tc= new TCanvas();
+	tc->SetRightMargin(.15);
+	plot->Scale(1/plot->Integral());
+	gPad->SetLogz();
+	plot->Draw("colz");
+	axisTitles(plot,"pT truth","pT reco/truth");
+}
+
+void drawRes2Eta(TH1* plot, TProfile* prof){
+	TCanvas *tc= new TCanvas();
+	tc->SetRightMargin(.15);
+	plot->Scale(1/plot->Integral());
+	//gPad->SetLogz();
+	plot->Draw("colz");
+	axisTitles(plot,"eta","resolution");
+	prof->Draw("same");
+}
+
+ TH2F* getClusterpT(TChain *all){
 	int Ncluster, Nparticle;
 	float clusterpT[200];
 	float clusterphi[200];
@@ -114,8 +144,6 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 	all->SetBranchAddress("particle_et",&eT);
 	all->SetBranchAddress("particle_pid",&id);
 
-
-	TH1F *p_exclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",32,5,45);
 	TH1F *p_inclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",32,5,45);
 	//cannot currently find direct vs frag in reco
 	/*TH1F *p_dircExclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",20,10,50);
@@ -127,8 +155,12 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 	TH2F *pTRatio2 = new TH2F(getNextPlotName(&plotcount).c_str(),"",200,10,30,100,0,2);
 	TH2F *etaRis2 = new TH2F(getNextPlotName(&plotcount).c_str(),"",320,10,20,150,-.11,.11);
 	TH2F *recopT = new TH2F(getNextPlotName(&plotcount).c_str(),"",25,10,30,22,0,30);
+	TH2F *res2eta = new TH2F(getNextPlotName(&plotcount).c_str(),"",20,-.7,.7,20,0,1.5);
+	TProfile* profResEta = new TProfile(getNextPlotName(&plotcount).c_str(),"",20,-.7,.7,0,1.5);
 	int passCluster=0;
 	int passIso=0;
+	int pionCut=0;
+	int noPhoton=0;
 	for (int i = 0; i < all->GetEntries(); ++i)
 	{
 		all->GetEntry(i);
@@ -138,18 +170,24 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 			int photonPosition= -1;
 			/* check to make sure there isn't a second photon*/
 			int j=0;
+			int firstPhoton=-1;
 			while(photonPosition==-1&&j<Nparticle){//find the photon
 				if (!isneg99(emcal[j]))
 				{
 					photonPosition=j;
+					if (firstPhoton==-1)
+					{
+						firstPhoton=photonPosition;
+					}
 					TLorentzVector pVec;
 					pVec.SetPtEtaPhiM(eT[photonPosition],eta[photonPosition],phi[photonPosition],0);
 
 					for (int k = 0; k < Nparticle; ++k)
 					{
 						if(k!=photonPosition&&makesPion(pVec,eT[k],eta[k],phi[k],id[k])){
-							cout<<photonPosition<<','<<k<<'\n';
+							ssanl<<"At pion:"<<photonPosition<<','<<k<<'\n';
 							photonPosition=-1;
+							pionCut++;
 							/*for (int j = 0; j < Nparticle; ++j)
 							{
 								cout<<"Truth"<<j<<": "<<pT[j]<<", "<<phi[j]<<", "<<eta[j]<<", "<<'\n';
@@ -162,8 +200,10 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 			}
 			if (photonPosition==-1)
 			{
-				cout<<"Warning photon not found"<<endl;
+				ssanl<<"Warning photon"<<i<<" not found"<<endl;		
+				noPhoton++;		
 				continue;
+				//photonPosition=firstPhoton;
 			}
 			float truthIso = Photon(photonPosition,eT,phi,eta,id,Nparticle).getIsoEt();
 			Cluster c1(clusterpT[0],clusterphi[0],clustereta[0],0);
@@ -180,14 +220,16 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 
 			p_inclusive->Fill(c1.getpT());
 			recopT->Fill(pT[photonPosition],c1.getpT());
-			ssanl<<truthIso<<", "<<pT[photonPosition]<<'\n';
-			if(truthIso<1){ // truth isolation CUT
+			//ssanl<<truthIso<<", "<<pT[photonPosition]<<'\n';
+			if(truthIso<1){ // truth isolation CUT 
 				passIso++;
 				pTRatio->Fill(c1.getpT()/pT[photonPosition]);
 				etaRis->Fill(c1.geteta()-eta[photonPosition]);
 				pTRatio2->Fill(pT[photonPosition],c1.getpT()/pT[photonPosition]);
 				etaRis2->Fill(pT[photonPosition],c1.geteta()-eta[photonPosition]);
-				if (c1.getpT()/pT[photonPosition]>1.8)
+				res2eta->Fill(eta[photonPosition],c1.getpT()/pT[photonPosition]);
+				profResEta->Fill(eta[photonPosition],c1.getpT()/pT[photonPosition]);
+				/*if (c1.getpT()/pT[photonPosition]<.8)
 				{
 					for (int j = 0; j < Ncluster; ++j)
 					{
@@ -202,21 +244,17 @@ inline bool makesPion(TLorentzVector pVec, float eT, float eta, float phi, int i
 					cout<<"\n \n";
 
 
-				}
-			}
-			if (Ncluster==1 && (recoIso(emcal[0],clusterpT[0],innerHcal[0],outerHcal[0])<3)) //exclude the events that trigger multiple clusters and then isoCut
-			{
-				p_exclusive->Fill(clusterpT[0]);
+				}*/
 			}
 		}
 	}
-	plots.push(p_inclusive); //1
-	plots.push(p_exclusive); //2
-	plots.push(pTRatio);   	 //3
-	plots.push(etaRis); 	 //4
-	plots.push(etaRis2); 	 //6
-	plots.push(recopT); 	 //7
+	int NVALUES = 11;
+	float values[]= {-.7,-.5,-.3,-.2,-.1,-.0,.1,.2,.3,.5,.7};
+	drawRes2Eta(res2eta,profResEta);
+	drawPlotRecopTResid2D(pTRatio2);
+	//makeResolution(res2eta,values,NVALUES,"truth #eta");
 	ssanl<<passCluster<<":"<<passIso<<'\n';
+	ssanl<<"pion CUt:"<<pionCut<<" No Photon:"<<noPhoton<<'\n';
 	return pTRatio2;
 }
 
@@ -264,22 +302,6 @@ void drawPlotRecoetaResid(TH1* plot){
 	plot->Draw();
 	axisTitles(plot,"eta reco-truth","count");
 }
-void drawPlotRecoetaResid2d(TH1* plot){
-	TCanvas *tc= new TCanvas();
-	tc->SetRightMargin(.15);
-	plot->Scale(1/plot->Integral());
-	gPad->SetLogz();
-	plot->Draw("colz");
-	axisTitles(plot,"pT truth","eta reco-truth");
-}
-void drawPlotRecopTResid2D(TH1* plot){
-	TCanvas *tc= new TCanvas();
-	tc->SetRightMargin(.15);
-	plot->Scale(1/plot->Integral());
-	gPad->SetLogz();
-	plot->Draw("colz");
-	axisTitles(plot,"pT truth","pT reco/truth");
-}
 
 void drawPlotRecopT2(TH1* plot){
 	TCanvas *tc= new TCanvas();
@@ -290,7 +312,7 @@ void drawPlotRecopT2(TH1* plot){
 	axisTitles(plot,"pT#gamma truth","pT#gamma reco");
 }
 
-TH2F* handleG4File(string name, string extension, int filecount,queue<TH1*> reco){
+TH2F* handleG4File(string name, string extension, int filecount){
 	TChain *all = new TChain("ttree");
 	string temp;
 	for (int i = 0; i < filecount; ++i)
@@ -299,7 +321,7 @@ TH2F* handleG4File(string name, string extension, int filecount,queue<TH1*> reco
 		temp = name+to_string(i)+extension;
 		all->Add(temp.c_str());
 	}
-	TH2F* plots=getClusterpT(all,reco);
+	TH2F* plots=getClusterpT(all);
 	delete all;
 	return plots;
 }
@@ -337,7 +359,7 @@ TH2F* handleG4File(string name, string extension, int filecount,queue<TH1*> reco
 
 Scalar getResolution(TH1* plot){
 	TF1 *fit = new TF1(getNextPlotName(&plotcount).c_str(),"gaus",plot->GetBinContent(1),plot->GetBinContent(plot->GetNbinsX()));
-	plot->Scale(1/plot->Integral());
+	//plot->Scale(1/plot->Integral());
 	plot->Fit(fit);
 	float gausData[2];
 	gausData[0]= fit->GetParameter(1);
@@ -365,27 +387,38 @@ void plotWithGaus(TH1* plot){
 	myText(.2,.3,kBlack,sigma.c_str());
 }
 
-void drawRes(TH1F* res){
+void drawRes(TH1F* res,string title){
 	TCanvas *tc = new TCanvas();
 	gStyle->SetErrorX(0);
 	res->Draw("p0");
+	axisTitles(res,title.c_str(),"resolution");
+	
 }
 
-void makeResolution(TH2F* data){
-	const int NVALUES = 7;
-	float values[NVALUES] = {10.0,12.0,14.0,16.0,18.0,20.0,22.0};
-	queue<TH1D*> plots = makeYProjections(data,getBinsFromValues(data,values,NVALUES),NVALUES-1,&plotcount);
+void drawTemp(TH1* plot){
+	TCanvas *tc = new TCanvas();
+	plot->Draw();
+}
+
+void makeResolution(TH2F* data, float* values, int NVALUES,string title){
+	queue<TH1D*> plots = makeYProjections(data,getBinsFromValues(data,true,values,NVALUES),NVALUES-1,&plotcount);
 	int i=0;
 	TH1F* res = new TH1F(getNextPlotName(&plotcount).c_str(),"",NVALUES-1,values);
+	Scalar average=0;
 	while(!plots.empty()){
 		plotWithGaus(plots.front());
 		Scalar tempRes = getResolution(plots.front());
+		ssanl<<tempRes;
 		res->SetBinContent(i+1,tempRes.value);
+		average+=tempRes;
 		res->SetBinError(i+1,tempRes.uncertainty);
+		//drawTemp(plots.front());
 		plots.pop();
 		i++;
 	}
-	drawRes(res);
+	drawRes(res,title);
+	average/=i;
+	ssanl<<average;
 }
 
 //fix getTruthpT before using this 
@@ -406,20 +439,7 @@ void FranG4Analysis1(){
 	string filename = "XjPhi1_pT5_output_";
 	string extension = ".root";
 	string temp = fileLocation+filename;
-	queue<TH1*> reco;
-	TH2F* pTRatio2=handleG4File(temp,extension,1000,reco);
-	TH1* p_inclusive = reco.front();
-	reco.pop();
-	TH1* p_exclusive = reco.front();
-	reco.pop();
-	TH1* pTRatio = reco.front();
-	reco.pop();
-	TH1* etaRis = reco.front();
-	reco.pop();
-	TH1* etaRis2 = reco.front();
-	reco.pop();
-	TH1* recopT2 = reco.front();
-
+	TH2F* pTRatio2=handleG4File(temp,extension,1000);
 	/*fileLocation="/home/user/Droptemp/XjPhi3/";
 	filename = "XjPhi1_pT5_";
 	temp = fileLocation+filename;
@@ -435,6 +455,8 @@ void FranG4Analysis1(){
 	//drawPlotRecoetaResid(etaRis);
 	//drawPlotRecoetaResid2d(etaRis2);
 	//drawPlotRecopT2(recopT2);
-	makeResolution(pTRatio2);
-	cout<<ssanl.str();
+	const int NVALUES = 7;
+	float values[NVALUES] = {10.0,12.0,14.0,16.0,18.0,20.0,22.0};
+	makeResolution(pTRatio2,values,NVALUES,"pT truth");
+	//cout<<ssanl.str();
 }
