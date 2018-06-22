@@ -254,7 +254,7 @@ inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if bot
 inline bool nonHadronParent(Event e, int position){ //returns true if both parents are not hadrons
 	int mother1 = e[position].mother1();
 	int mother2 = e[position].mother2();
-	return ( e[mother1].id()<100 && e[mother1].id()<100 );
+	return ( TMath::Abs(e[mother1].id())<100 && TMath::Abs(e[mother1].id())<100 );
 }
 
 bool bothParentQuarkORGluon_v2(Event e, int position) //returns true if both parents are quarks or gluons, trying because above always returns false
