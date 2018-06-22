@@ -248,8 +248,38 @@ inline bool isQuark(int ID){
 inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if both parents are either a quark or gluon
 	int mother1 = e[position].mother1();
 	int mother2 = e[position].mother2();
-	cout<<"checking for pion"<<endl;
 	return (isQuark(e[mother1].id())||e[mother1].id()==21) && (e[mother2].id()==21||isQuark(e[mother2].id()));
+}
+
+bool bothParentQuarkORGluon_v2(Event e, int position) //returns true if both parents are quarks or gluons, trying because above always returns false
+{ 
+  int mother1 = e[position].mother1();
+  int mother2 = e[position].mother2();
+  bool mother1check = false;
+  bool mother2check = false;
+  ////////everything below this is FRAN's last return statement//
+  cout<<"mother1: ID: "<<e[mother1].id()<<endl; 
+  if(isQuark(e[mother1].id()) or e[mother1].id() == 21) 
+    { 
+      mother1check = true; 
+      cout<<"Good mother!"<<endl; 
+    } 
+  cout<<"mother1: ID: "<<e[mother1].id()<<endl; 
+  cout<<endl; 
+  if(isQuark(e[mother2].id()) or e[mother2].id() == 21) 
+    { 
+      mother2check = true; 
+      cout<<"Good mother!"<<endl; 
+    } 
+  if(mother1check == true and mother2check == true) 
+    { 
+      return true; 
+    } 
+  else 
+    { 
+      return false; 
+    } 
+  ///////////////////////////////////////////////////////////////
 }
 
 void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP)
@@ -342,9 +372,9 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
     		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
     		{
     			jetquark=isDirect(pythiaengine.info.code());
-			cout<<"direct or frag: "<<jetquark<<endl;
-			cout<<"not a pion: "<<bothParentQuarkORGluon(pythiaengine.event,i)<<endl;
-    			if(!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i)) // remove the frag photons that do not come from a q 
+			//cout<<"direct or frag: "<<jetquark<<endl;
+			//cout<<"not a pion: "<<bothParentQuarkORGluon(pythiaengine.event,i)<<endl;
+    			if(!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i)) 
     			{
     				HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
           			ToHepMC_frag.fill_next_event( pythiaengine, hepmcevtfrag ); //convert event from pythia to HepMC
