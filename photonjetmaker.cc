@@ -251,6 +251,12 @@ inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if bot
 	return (isQuark(e[mother1].id())||e[mother1].id()==21) && (e[mother2].id()==21||isQuark(e[mother2].id()));
 }
 
+inline bool nonHadronParent(Event e, int position){ //returns true if both parents are not hadrons
+	int mother1 = e[position].mother1();
+	int mother2 = e[position].mother2();
+	return ( e[mother1].id()<100 && e[mother1].id()<100 );
+}
+
 bool bothParentQuarkORGluon_v2(Event e, int position) //returns true if both parents are quarks or gluons, trying because above always returns false
 { 
   int mother1 = e[position].mother1();
@@ -285,26 +291,38 @@ bool bothParentQuarkORGluon_v2(Event e, int position) //returns true if both par
 void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, bool genHEP)
 {
   	using namespace HepMC;
-	string hepNameDirect = filename+"_direct"+".dat";    //filenames
-	string hepNameFrag = filename+"_frag"+".dat";
+	string hepName = filename+".dat";    //filenames
 	filename+=".root";
 
 	TFile* f = new TFile(filename.c_str(),"RECREATE");
   	TTree* interestXj = new TTree("interest","interest");
   	interestXj->SetAutoSave(3000);
 
-  	using namespace HepMC;
-    HepMC::Pythia8ToHepMC ToHepMC_direct;    // Interface for conversion from Pythia8::Event to HepMC event.
-    HepMC::Pythia8ToHepMC ToHepMC_frag;  //frag events
-    HepMC::IO_GenEvent ascii_io_direct(hepNameDirect, std::ios::out); //file where HepMC events will be stored.
-    HepMC::IO_GenEvent ascii_io_frag(hepNameFrag, std::ios::out); //file where HepMC events will be stored.
+    HepMC::Pythia8ToHepMC ToHepMC;    // Interface for conversion from Pythia8::Event to HepMC event.
+    HepMC::IO_GenEvent ascii_io_direct(hepName, std::ios::out); //file where HepMC events will be stored.
 
 
 	/*pythia set up*/
     Pythia pythiaengine;
     pythiaengine.readString("Beams:eCM = 200."); //LHC VS RHIC
-  	pythiaengine.readString("promptphoton:all = on");
- 	pythiaengine.readString("HardQCD:all = on");
+    /* ATLAS photon generation functions 
+"HardQCD:gg2gg = on",
+"HardQCD:gg2qqbar = on",
+"HardQCD:qg2qg = on",
+"HardQCD:qq2qq = on",
+"HardQCD:qqbar2gg = on",
+"HardQCD:qqbar2qqbarNew = on",
+"PromptPhoton:qg2qgamma = on",
+"PromptPhoton:qqbar2ggamma = on",
+"PhaseSpace:pTHatMin = 25"*/
+  	pythiaengine.readString("HardQCD:gg2gg = on");
+  	pythiaengine.readString("HardQCD:gg2qqbar = on");
+  	pythiaengine.readString("HardQCD:qg2qg = on");
+  	pythiaengine.readString("HardQCD:qq2qq = on");
+  	pythiaengine.readString("HardQCD:qqbar2gg = on");
+  	pythiaengine.readString("HardQCD:qqbar2qqbarNew = on");
+  	pythiaengine.readString("PromptPhoton:qg2qgamma = on");
+  	pythiaengine.readString("PromptPhoton:qqbar2ggamma = on");
   	pythiaengine.readString("Random::setSeed = on");
   	pythiaengine.readString("Random::seed =0");
   	pTHat = "PhaseSpace:pTHatMin = "+pTHat+".";
@@ -350,10 +368,10 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
   	interestXj->Branch("jetpz",jetpz,"jetpz[200]/F");
   	/* varibles for the TTree*/
   	int position,end,jetend;
-  	bool jetquark;
+  	int jetquark;
 	float pthat;
   	interestXj->Branch("photonPosition",&position);
-  	interestXj->Branch("direct", &jetquark);
+  	interestXj->Branch("infocode", &jetquark);
 	interestXj->Branch("pTHat", &pthat);
   	interestXj->Branch("end",&end);
   	interestXj->Branch("jetend",&jetend);
@@ -369,35 +387,19 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
     	for (int i = 0; i < pythiaengine.event.size(); ++i)
     	{
     		int finalcount=0;
-    		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut
+    		if (quickPhotonCheck(pythiaengine.event[i],gammaCut)&&nonHadronParent(pythiaengine.event,i)) //eta, pT, and photon cut then parent cut
     		{
-    			jetquark=isDirect(pythiaengine.info.code());
-			//cout<<"direct or frag: "<<jetquark<<endl;
-			//cout<<"not a pion: "<<bothParentQuarkORGluon(pythiaengine.event,i)<<endl;
-    			if(!jetquark&&bothParentQuarkORGluon(pythiaengine.event,i)) 
-    			{
-    				HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
-          			ToHepMC_frag.fill_next_event( pythiaengine, hepmcevtfrag ); //convert event from pythia to HepMC
-          			ascii_io_frag << hepmcevtfrag;//write event to file
-          			delete hepmcevtfrag; //delete event so it can be redeclared next time
-				cout<<"frag"<<endl;
-    			}
-    			else if(jetquark) //generate direct events
-    			{
-    				HepMC::GenEvent* hepmcevtdirect = new HepMC::GenEvent(); //create HepMC "event" for direct photons
-          			ToHepMC_direct.fill_next_event( pythiaengine, hepmcevtdirect ); //convert event from pythia to HepMC
-          			ascii_io_direct << hepmcevtdirect;//write event to file
-          			delete hepmcevtdirect; //delete event so it can be redeclared next time
-				cout<<"direct"<<endl;
-			}
-
+    			
+    			HepMC::GenEvent* hepmcevtfrag = new HepMC::GenEvent(); //create HepMC "event" for frag photons
+          		ToHepMC_frag.fill_next_event( pythiaengine, hepmcevtfrag ); //convert event from pythia to HepMC
+          		ascii_io_frag << hepmcevtfrag;//write event to file
+          		delete hepmcevtfrag; //delete event so it can be redeclared next time
     			antikT2->analyze(pythiaengine.event);
     			antikT3->analyze(pythiaengine.event);
     			antikT4->analyze(pythiaengine.event);
     			/*fill the tree*/ 
-
-  				/*fill the particle vectors*/
   				position=i;
+    			jetquark=pythiaengine.info.code();
   				end=fillTreebyEvent(pythiaengine.event,status,id,pT,eT,eta,phi,mother1,mother2,e,&position);
   				/*fill the jet vectors*/
   				jetend=fillTreebySlowJet(antikT2,antikT3,antikT4,jetmult,jety,jetphi,jetpT,jetR,jetm,jetpz);
