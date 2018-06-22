@@ -12,18 +12,18 @@
 # Variable Defs                                                                                                                                      
 #-------------------                                                                                                                                  
 
-set OUT_FILE="/sphenix/user/vassalli/XjPhi1"
+set OUT_FILE="/sphenix/user/chase/XjPhi_separated"
 
 set SCRATCH_AREA="$_CONDOR_SCRATCH_DIR"                                                                                                              
 #set SCRATCH_AREA="/phenix/scratch/chase"
 
-set SOURCE_PHOTONMAKER="/direct/phenix+u/vassalli/photonJet/photonjetmaker"
+set SOURCE_PHOTONMAKER="/direct/phenix+u/chase/photonJet/photonjetmaker"
 
 #-------------------                                                                                                                                
 # Export Libraries                                                                                                                                   
 #-------------------                                                                                                                                  
 
-source /phenix/u/vassalli/.cshrc
+source /phenix/u/chase/.cshrc
 
 #-------------------                                                                                                                                 
 # Set Scratch Area                                                                                                                                   
@@ -37,8 +37,8 @@ cp  $SOURCE_PHOTONMAKER $SCRATCH_AREA/fran_chase_photons/
 #-------------------                                                                                                                                  
 
 cd $SCRATCH_AREA/fran_chase_photons
-./photonjetmaker XjPhi1_pT5_${1} 5 10 20000000
-cp XjPhi1_pT5_${1}* $OUT_FILE
+./photonjetmaker XjPhi_pT5_${1} 5 10 1000000
+cp XjPhi_pT5_${1}* $OUT_FILE
 
 
 rm -r $SCRATCH_AREA/fran_chase_photons
