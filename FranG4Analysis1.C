@@ -117,6 +117,60 @@ void drawRes2Eta(TH1* plot, TProfile* prof){
 	prof->Draw("same");
 }
 
+void drawPlotRecovsTruthpT(TH1F* p_excluspT, TH1F* dirc, TH1F *frag){
+	TCanvas *tc= new TCanvas();
+	double truthsum = dirc->Integral()+frag->Integral();
+	//cout<<truthsum<<":"<<p_excluspT->Integral()<<endl;
+	dirc->Scale(1/p_excluspT->Integral());
+	frag->Scale(1/p_excluspT->Integral());
+	p_excluspT->Scale(1/p_excluspT->Integral());
+	p_excluspT->Draw();
+	dirc->Draw("same");
+	frag->Draw("same");
+	//doubleZero(p_excluspT,.5,1);
+	makeDifferent(dirc,1);
+	makeDifferent(frag,2);
+	TLegend *tl =new TLegend(.25,.7,.4,.85);
+	tl->AddEntry(p_excluspT,"reco","p");
+	tl->AddEntry(dirc, "truth direct","p");
+	tl->AddEntry(frag,"truth frag","p");
+	axisTitles(p_excluspT,"pT#gamma","count");
+	tl->Draw();
+}
+
+void drawPlotRecopTResid(TH1* plot){
+	TCanvas *tc= new TCanvas();
+	TF1 *fit = new TF1(getNextPlotName(&plotcount).c_str(),"gaus",.4,1.6);
+	cout<<plot->Integral()<<endl;
+	plot->Scale(1/plot->Integral());
+	plot->Fit(fit);
+	float gausData[2];
+	gausData[0]= fit->GetParameter(1);
+	gausData[1]= fit->GetParameter(2);
+	recursiveGaus(plot,fit,gausData,1.5,90);
+	string sigma = "sigma: "+to_string(gausData[1]);
+	plot->Draw();
+	fit->SetRange(gausData[0]-gausData[1],0,gausData[0]+gausData[1],1);
+	fit->Draw("same");
+	myText(.2,.3,kBlack,sigma.c_str());
+	axisTitles(plot,"pT reco/truth","count");
+}
+void drawPlotRecoetaResid(TH1* plot){
+	TCanvas *tc= new TCanvas();
+	plot->Scale(1/plot->Integral());
+	plot->Draw();
+	axisTitles(plot,"eta reco-truth","count");
+}
+
+void drawPlotRecopT2(TH1* plot){
+	TCanvas *tc= new TCanvas();
+	tc->SetRightMargin(.15);
+	plot->Scale(1/plot->Integral());
+	gPad->SetLogz();
+	plot->Draw("colz");
+	axisTitles(plot,"pT#gamma truth","pT#gamma reco");
+}
+
  TH2F* getClusterpT(TChain *all){
 	int Ncluster, Nparticle;
 	float clusterpT[200];
@@ -145,11 +199,7 @@ void drawRes2Eta(TH1* plot, TProfile* prof){
 	all->SetBranchAddress("particle_pid",&id);
 
 	TH1F *p_inclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",32,5,45);
-	//cannot currently find direct vs frag in reco
-	/*TH1F *p_dircExclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",20,10,50);
-	TH1F *p_fragExclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",20,10,50);
-	TH1F *p_fragInclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",20,10,50);
-	TH1F *p_dircInclusive = new TH1F(getNextPlotName(&plotcount).c_str(),"",20,10,50);*/
+
 	TH1F *pTRatio = new TH1F(getNextPlotName(&plotcount).c_str(),"",80,0,2);
 	TH1F *etaRis = new TH1F(getNextPlotName(&plotcount).c_str(),"",20,-1,1);
 	TH2F *pTRatio2 = new TH2F(getNextPlotName(&plotcount).c_str(),"",200,10,30,100,0,2);
@@ -157,10 +207,12 @@ void drawRes2Eta(TH1* plot, TProfile* prof){
 	TH2F *recopT = new TH2F(getNextPlotName(&plotcount).c_str(),"",25,10,30,22,0,30);
 	TH2F *res2eta = new TH2F(getNextPlotName(&plotcount).c_str(),"",20,-.7,.7,20,0,1.5);
 	TProfile* profResEta = new TProfile(getNextPlotName(&plotcount).c_str(),"",20,-.7,.7,0,1.5);
+	
 	int passCluster=0;
 	int passIso=0;
 	int pionCut=0;
 	int noPhoton=0;
+	
 	for (int i = 0; i < all->GetEntries(); ++i)
 	{
 		all->GetEntry(i);
@@ -252,7 +304,6 @@ void drawRes2Eta(TH1* plot, TProfile* prof){
 	float values[]= {-.7,-.5,-.3,-.2,-.1,-.0,.1,.2,.3,.5,.7};
 	drawRes2Eta(res2eta,profResEta);
 	drawPlotRecopTResid2D(pTRatio2);
-	//makeResolution(res2eta,values,NVALUES,"truth #eta");
 	//drawPlotRecovsTruthpT(reco.front(),truthdirc,truthfrag);
 	//drawPlotRecopTResid(pTRatio);
 	//drawPlotRecopTResid2D(pTRatio2);
@@ -262,60 +313,6 @@ void drawRes2Eta(TH1* plot, TProfile* prof){
 	ssanl<<passCluster<<":"<<passIso<<'\n';
 	ssanl<<"pion CUt:"<<pionCut<<" No Photon:"<<noPhoton<<'\n';
 	return pTRatio2;
-}
-
-void drawPlotRecovsTruthpT(TH1F* p_excluspT, TH1F* dirc, TH1F *frag){
-	TCanvas *tc= new TCanvas();
-	double truthsum = dirc->Integral()+frag->Integral();
-	//cout<<truthsum<<":"<<p_excluspT->Integral()<<endl;
-	dirc->Scale(1/p_excluspT->Integral());
-	frag->Scale(1/p_excluspT->Integral());
-	p_excluspT->Scale(1/p_excluspT->Integral());
-	p_excluspT->Draw();
-	dirc->Draw("same");
-	frag->Draw("same");
-	//doubleZero(p_excluspT,.5,1);
-	makeDifferent(dirc,1);
-	makeDifferent(frag,2);
-	TLegend *tl =new TLegend(.25,.7,.4,.85);
-	tl->AddEntry(p_excluspT,"reco","p");
-	tl->AddEntry(dirc, "truth direct","p");
-	tl->AddEntry(frag,"truth frag","p");
-	axisTitles(p_excluspT,"pT#gamma","count");
-	tl->Draw();
-}
-
-void drawPlotRecopTResid(TH1* plot){
-	TCanvas *tc= new TCanvas();
-	TF1 *fit = new TF1(getNextPlotName(&plotcount).c_str(),"gaus",.4,1.6);
-	cout<<plot->Integral()<<endl;
-	plot->Scale(1/plot->Integral());
-	plot->Fit(fit);
-	float gausData[2];
-	gausData[0]= fit->GetParameter(1);
-	gausData[1]= fit->GetParameter(2);
-	recursiveGaus(plot,fit,gausData,1.5,90);
-	string sigma = "sigma: "+to_string(gausData[1]);
-	plot->Draw();
-	fit->SetRange(gausData[0]-gausData[1],0,gausData[0]+gausData[1],1);
-	fit->Draw("same");
-	myText(.2,.3,kBlack,sigma.c_str());
-	axisTitles(plot,"pT reco/truth","count");
-}
-void drawPlotRecoetaResid(TH1* plot){
-	TCanvas *tc= new TCanvas();
-	plot->Scale(1/plot->Integral());
-	plot->Draw();
-	axisTitles(plot,"eta reco-truth","count");
-}
-
-void drawPlotRecopT2(TH1* plot){
-	TCanvas *tc= new TCanvas();
-	tc->SetRightMargin(.15);
-	plot->Scale(1/plot->Integral());
-	gPad->SetLogz();
-	plot->Draw("colz");
-	axisTitles(plot,"pT#gamma truth","pT#gamma reco");
 }
 
 TH2F* handleG4File(string name, string extension, int filecount){
