@@ -253,6 +253,12 @@ void drawRes2Eta(TH1* plot, TProfile* prof){
 	drawRes2Eta(res2eta,profResEta);
 	drawPlotRecopTResid2D(pTRatio2);
 	//makeResolution(res2eta,values,NVALUES,"truth #eta");
+	//drawPlotRecovsTruthpT(reco.front(),truthdirc,truthfrag);
+	//drawPlotRecopTResid(pTRatio);
+	//drawPlotRecopTResid2D(pTRatio2);
+	//drawPlotRecoetaResid(etaRis);
+	//drawPlotRecoetaResid2d(etaRis2);
+	//drawPlotRecopT2(recopT2);
 	ssanl<<passCluster<<":"<<passIso<<'\n';
 	ssanl<<"pion CUt:"<<pionCut<<" No Photon:"<<noPhoton<<'\n';
 	return pTRatio2;
@@ -326,78 +332,12 @@ TH2F* handleG4File(string name, string extension, int filecount){
 	return plots;
 }
 
-//needs particle ID to calculate truth ISO
-/*void getTruthpT(TChain *chain, TH1F* dirc, TH1F * frag){
-	int photonPosition,end;
-	bool direct;
-	float eT[300];
-	float phi[300];
-	float eta[300];
-	chain->SetBranchAddress("photonPosition",&photonPosition);
-	chain->SetBranchAddress("end",&end);
-	chain->SetBranchAddress("direct",&direct);
-	chain->SetBranchAddress("eT",&eT);
-	chain->SetBranchAddress("phi",&phi);
-	chain->SetBranchAddress("eta",&eta);
-	for (int i = 0; i < chain->GetEntries(); ++i)
-	{
-		chain->GetEntry(i);
-		end++;
-		Photon pTemp =Photon(end,photonPosition,eT,phi,eta,direct,.3);
-		if (pTemp.getIsoEt()>3){
-			continue; // isoEt cut 
-		} 
-		if (pTemp.isDirect())
-		{
-			dirc->Fill(eT[photonPosition]);
-		}
-		else{
-			frag->Fill(eT[photonPosition]);
-		}
-	}
-}*/
-
-Scalar getResolution(TH1* plot){
-	TF1 *fit = new TF1(getNextPlotName(&plotcount).c_str(),"gaus",plot->GetBinContent(1),plot->GetBinContent(plot->GetNbinsX()));
-	//plot->Scale(1/plot->Integral());
-	plot->Fit(fit);
-	float gausData[2];
-	gausData[0]= fit->GetParameter(1);
-	gausData[1]= fit->GetParameter(2);
-	recursiveGaus(plot,fit,gausData,1.5,90);
-	Scalar mean(gausData[0],fit->GetParError(1));
-	Scalar sigma(gausData[1],fit->GetParError(2));
-	//ssanl<<"Mean:"<<gausData[0]<<", "<<gausData[1]<<"="<<gausData[1]/gausData[0]<<'\n';
-	return sigma/mean;
-}
-
-void plotWithGaus(TH1* plot){
-	TCanvas *tc =new TCanvas();
-	TF1 *fit = new TF1(getNextPlotName(&plotcount).c_str(),"gaus",plot->GetBinContent(1),plot->GetBinContent(plot->GetNbinsX()));
-	plot->Scale(1/plot->Integral());
-	plot->Fit(fit);
-	float gausData[2];
-	gausData[0]= fit->GetParameter(1);
-	gausData[1]= fit->GetParameter(2);
-	recursiveGaus(plot,fit,gausData,1.5,90);
-	string sigma = "#sigma:"+to_string(gausData[1]);
-	plot->Draw();
-	fit->SetRange(gausData[0]-gausData[1],0,gausData[0]+gausData[1],1);
-	fit->Draw("same");
-	myText(.2,.3,kBlack,sigma.c_str());
-}
-
 void drawRes(TH1F* res,string title){
 	TCanvas *tc = new TCanvas();
 	gStyle->SetErrorX(0);
 	res->Draw("p0");
 	axisTitles(res,title.c_str(),"resolution");
 	
-}
-
-void drawTemp(TH1* plot){
-	TCanvas *tc = new TCanvas();
-	plot->Draw();
 }
 
 void makeResolution(TH2F* data, float* values, int NVALUES,string title){
@@ -412,7 +352,6 @@ void makeResolution(TH2F* data, float* values, int NVALUES,string title){
 		res->SetBinContent(i+1,tempRes.value);
 		average+=tempRes;
 		res->SetBinError(i+1,tempRes.uncertainty);
-		//drawTemp(plots.front());
 		plots.pop();
 		i++;
 	}
@@ -421,42 +360,19 @@ void makeResolution(TH2F* data, float* values, int NVALUES,string title){
 	ssanl<<average;
 }
 
-//fix getTruthpT before using this 
-/*void handlePYTHIAFile(string name, string extension, int filecount,TH1F* dirc, TH1F* frag){
-	TChain *all = new TChain("interest");
-	string temp;
-	for (int i = 0; i < filecount; ++i)
-	{
-		temp = name+to_string(i)+extension;
-		all->Add(temp.c_str());
-	}
-	getTruthpT(all,dirc,frag);
-	delete all;
-}*/
-
 void FranG4Analysis1(){
-	string fileLocation = "/home/user/Droptemp/G4OutInitial/";
-	string filename = "XjPhi1_pT5_output_";
+	string fileLocation = "/home/user/Droptemp/directseperatedOverflow/";
+	string filename = "XjPhi_pT5_output_direct_";
 	string extension = ".root";
 	string temp = fileLocation+filename;
-	TH2F* pTRatio2=handleG4File(temp,extension,1000);
-	/*fileLocation="/home/user/Droptemp/XjPhi3/";
-	filename = "XjPhi1_pT5_";
-	temp = fileLocation+filename;
-	TH1F *truthdirc=new TH1F(getNextPlotName(&plotcount).c_str(),"",32,5,45);
-	TH1F *truthfrag=new TH1F(getNextPlotName(&plotcount).c_str(),"",32,5,45);
-	handlePYTHIAFile(temp,extension,500,truthdirc,truthfrag);*/
+	TH2F* pTRatio2=handleG4File(temp,extension,10000);
+	
 	/*printHist(truthdirc);
 	printHist(truthfrag);
 	printHist(reco.front());*/
-	//drawPlotRecovsTruthpT(reco.front(),truthdirc,truthfrag);
-	//drawPlotRecopTResid(pTRatio);
-	//drawPlotRecopTResid2D(pTRatio2);
-	//drawPlotRecoetaResid(etaRis);
-	//drawPlotRecoetaResid2d(etaRis2);
-	//drawPlotRecopT2(recopT2);
-	const int NVALUES = 7;
-	float values[NVALUES] = {10.0,12.0,14.0,16.0,18.0,20.0,22.0};
+	
+	const int NVALUES = 5;
+	float values[NVALUES] = {10.0,12.0,14.0,16.0,22.0};
 	makeResolution(pTRatio2,values,NVALUES,"pT truth");
 	//cout<<ssanl.str();
 }
