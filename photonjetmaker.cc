@@ -257,10 +257,6 @@ inline bool nonHadronParent(Event e, int position){ //returns true if both paren
 	return ( TMath::Abs(e[mother1].id())<100 && TMath::Abs(e[mother1].id())<100 );
 }
 
-inline bool isDirect(Event e, int position){
-	
-}
-
 bool bothParentQuarkORGluon_v2(Event e, int position) //returns true if both parents are quarks or gluons, trying because above always returns false
 { 
   int mother1 = e[position].mother1();
@@ -334,7 +330,7 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
 
     	for (int i = 0; i < pythiaengine.event.size(); ++i)
     	{
-    		if (fragCheck(pythiaengine.event[i],gammaCut)) //eta, pT, and photon cut then parent cut
+    		if (fragCheck(pythiaengine.event[i],gammaCut)&&isDirect(pythiaengine.info.code())) //eta, pT, and photon cut then parent cut
     		{
     			finalcount++;
      			break;
