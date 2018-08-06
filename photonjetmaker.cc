@@ -245,7 +245,7 @@ inline bool isQuark(int ID){
 		return TMath::Abs(ID)>0&&TMath::Abs(ID)<9;
 }
 
-inline bool bothParentQuarkORGluon(Event e, int position){ //returns true if both parents are either a quark or gluon
+inline bool bothParentQuarkOrGluon(Event e, int position){ //returns true if both parents are either a quark or gluon
 	int mother1 = e[position].mother1();
 	int mother2 = e[position].mother2();
 	return (isQuark(e[mother1].id())||e[mother1].id()==21) && (mother2==0||e[mother2].id()==21||isQuark(e[mother2].id()));
@@ -330,13 +330,14 @@ void makeData(std::string filename, long nEvents, string pTHat, float gammaCut, 
 
     	for (int i = 0; i < pythiaengine.event.size(); ++i)
     	{
-    		if (fragCheck(pythiaengine.event[i],gammaCut)&&isDirect(pythiaengine.info.code())) //eta, pT, and photon cut then parent cut
+    		if(quickPhotonCheck(pythiaengine.event[i],gammaCut)&&bothParentQuarkOrGluon(pythiaengine.event,i)&&isDirect(pythiaengine.info.code())) //eta, pT, and photon cut then parent cut
     		{
     			finalcount++;
      			break;
     		}
     	}
   	}
+    std::cout<<finalcount<<std::endl;
 }
 
 int main(int argc, char const *argv[] )
@@ -347,6 +348,7 @@ int main(int argc, char const *argv[] )
 	long nEvents =strtol(argv[4],NULL,10);  // 5000000;
 	bool genHEP=true;
 	makeData(fileOut,nEvents, pTHat, gammaCut,genHEP);
+  std::cout<<"Done"<<std::endl;
 	return 0;
 }
 
