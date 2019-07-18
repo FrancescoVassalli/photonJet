@@ -19,6 +19,12 @@ using namespace std;
 
 //float** qXjPhiTo2DArray(queue<XjPhi> in); //in utils for now
 
+//put your cuts in here
+namespace{
+  int kGAMMAPTCUT=10;
+  int kGAMMAETACUT=1;
+}
+
 float deltaPhi(Photon p, Jet j);
 
 class myParticle
@@ -171,7 +177,7 @@ T positivePhi(T in){
 }
 
 inline bool quickPhotonCheck(Particle p){
-	return p.id()==22&&p.isFinal()&&p.pT()>10&&TMath::Abs(p.eta())<1;
+	return p.id()==22&&p.isFinal()&&p.pT()>kGAMMAPTCUT&&TMath::Abs(p.eta())<kGAMMAETACUT;
 }
 
 /* list of "problem" events that I am still getting

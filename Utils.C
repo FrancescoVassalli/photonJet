@@ -932,3 +932,152 @@ inline float deltaPhi(float i1, float i2){
 	return r;
 }
 
+lass myParticle
+{
+public:
+  myParticle();
+  ~myParticle();
+private:
+  int id;
+  Scalar pT;
+  Scalar phi;
+  Scalar eta;
+  
+};
+
+class myEvent
+{
+public:
+  myEvent();
+  ~myEvent();
+private:
+  std::vector<myParticle> particles;
+  bool photontype;
+  int count;
+};
+
+class DiJet
+{
+public:
+	DiJet(Jet j1, Jet j2){
+		leading = bigger(j1,j2);
+		subleading=smaller(j1,j2);
+		
+	}
+	DiJet(double pt1, double phi1, double pt2,double phi2){
+		if (pt1>pt2)
+		{
+			leading=Jet(pt1,phi1,0,0);
+			subleading=Jet(pt2,phi2,0,0);
+		}
+		else{
+			subleading=Jet(pt1,phi1,0,0);
+			leading=Jet(pt2,phi2,0,0);
+		}
+		makeXjPhi();
+	}
+	DiJet(){}
+
+	~DiJet(){}
+	Jet getleading(){
+		return leading;
+	}
+	Jet getsubleading(){
+		return subleading;
+	}
+private:
+	void makeXjPhi(){
+		xjphi=XjPhi(leading,subleading);
+	}
+	Jet leading;
+	Jet subleading;
+	XjPhi xjphi;
+	
+};
+
+class PhotonJet
+{
+public:
+	PhotonJet(){}
+	PhotonJet(Photon p, Jet j){
+		photon = p;
+		jet = j;
+		makeXjPhi();
+	}
+	PhotonJet(bool f){ //place holder for NULL events
+		xjphi= XjPhi(0,2*TMath::Pi());
+	}
+	PhotonJet(Photon p, DiJet d){
+		//get the Jet with the bigger difference in phi
+		if (deltaPhi(p,d.getleading())>deltaPhi(p,d.getsubleading()))
+		{
+			jet = d.getleading();
+		}
+		else{
+			jet = d.getsubleading();
+		}
+		photon=p;
+		makeXjPhi();
+	}
+	PhotonJet(Photon p, Jet j1, Jet j2){
+		photon=p;
+		if (deltaPhi(p,j1)>deltaPhi(p,j2))
+		{
+			jet=j1;
+		}
+		else{
+			jet=j2;
+		}
+		makeXjPhi();
+	}
+	PhotonJet(Photon p){//for events with no paired jet
+		photon=p;
+		xjphi=XjPhi(0,0);
+	}
+	~PhotonJet(){}
+	Scalar getXj(){
+		return xjphi.getXj();
+	}
+	Scalar getphi(){
+		return xjphi.getphi();
+	}
+	Photon getPhoton(){
+		return photon;
+	}
+	Jet getJet(){
+		return jet;
+	}
+	friend ostream& operator<<(ostream& os, PhotonJet const & tc) {
+        return os << tc.xjphi;
+    }
+private:
+	void makeXjPhi(){
+		xjphi = XjPhi(photon,jet);
+	}
+	Photon photon;
+	Jet jet;
+	XjPhi xjphi;
+	
+};
+
+template<class T>
+T positivePhi(T in){
+	if (in<0)
+	{
+		in = in+2*TMath::Pi();
+	}
+	return in;
+}
+
+//inclusive
+queue<Jet> getSignificantJet(SlowJet* antikT, float minGeV, float rad){
+	queue<Jet> r;
+	int i=0;
+	while (antikT->pT(i)>=minGeV)
+	{
+		r.push(Jet(antikT->pT(i),antikT->phi(i),antikT->y(i),rad));
+		i++;
+	}
+	return r;
+}
+
