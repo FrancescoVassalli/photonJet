@@ -68,11 +68,11 @@ void makeData(std::string filename, int nEvents){
 		/* zero out */
 		for (int i = 0; i < pythiaengine.event.size(); ++i)
 		{
-			if (p.id()==22&&p.isFinal()&&p.pT()>kGAMMAPTCUT&&TMath::Abs(p.eta())<kGAMMAETACUT)
+			if (pythiaengine.event[i].id()==22&&pythiaengine.event[i].isFinal()&&pythiaengine.event[i].pT()>kGAMMAPTCUT&&TMath::Abs(pythiaengine.event[i].eta())<kGAMMAETACUT)
 			{
 				finalGammaCount++;
 				//get the generation process 
-				//cout<<pythiaengine.process[i].pT()<<'\n';
+				//cout<<pythiaengine.process[i].pT()<<'\n'; 
 				Photon myPhoton = Photon(pythiaengine.event[i].pT(),positivePhi(pythiaengine.event[i].phi()),pythiaengine.event[i].eta(),isDirect(pythiaengine.info.code()));
 				antikT->analyze(pythiaengine.event);
 				//ss<<finalGammaCount<<'\n';
